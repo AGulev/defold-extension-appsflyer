@@ -23,9 +23,17 @@ shared_state = 1
 [library]
 include_dirs = defappsflyer
 
+[AppsFlyer]
+key = UTyntqm3XiXzg6Tj2PCN4G
+AppleAppID = 1255979825
+is_debug = 1
+
 [android]
 package = com.agulev.test
 
 [ios]
 bundle_identifier = com.agulev.test
+
+[iap]
+auto_finish_transactions = 0
 

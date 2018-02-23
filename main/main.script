@@ -1,8 +1,6 @@
 function init(self)
   pprint(appsflyer)
   appsflyer.setIsDebug(true)
-  appsflyer.setAppID("1255979825")
-  appsflyer.setAppsFlyerKey("UTyntqm3XiXzg6Tj2PCN4G")
 end
 
 function final(self)

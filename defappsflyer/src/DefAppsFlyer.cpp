@@ -49,14 +49,14 @@ static void LuaInit(lua_State* L)
     assert(top == lua_gettop(L));
 }
 
-dmExtension::Result AppInitialize(dmExtension::AppParams* params)
-{
-    return dmExtension::RESULT_OK;
-}
-
-dmExtension::Result Initialize(dmExtension::Params* params)
+dmExtension::Result Initilize(dmExtension::Params* params)
 {
     LuaInit(params->m_L);
+    int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "AppsFlyer.is_debug", 0);
+    if (isDebug > 0)
+    {
+        DefAppsFlyer_setIsDebug(true);
+    }
     const char* appsFlyerKey = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.key", 0);
     if (appsFlyerKey)
     {
@@ -75,12 +75,16 @@ dmExtension::Result Initialize(dmExtension::Params* params)
         DefAppsFlyer_setAppID(appleAppID);
     }
     #endif
+    trackAppLaunch(params->m_L);
     return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result AppFinalize(dmExtension::AppParams* params)
+static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event) 
 {
-    return dmExtension::RESULT_OK;
+    if (event->m_Event == dmExtension::EVENT_ID_ACTIVATEAPP)
+    {
+        trackAppLaunch(params->m_L);
+    }
 }
 
 dmExtension::Result Finalize(dmExtension::Params* params)
@@ -90,20 +94,14 @@ dmExtension::Result Finalize(dmExtension::Params* params)
 
 #else // unsupported platforms
 
-static dmExtension::Result AppInitialize(dmExtension::AppParams* params)
+static dmExtension::Result Initilize(dmExtension::Params* params)
 {
     dmLogWarning("Registered %s (null) Extension\n", MODULE_NAME);
     return dmExtension::RESULT_OK;
 }
 
-static dmExtension::Result Initialize(dmExtension::Params* params)
+static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event) 
 {
-    return dmExtension::RESULT_OK;
-}
-
-static dmExtension::Result AppFinalize(dmExtension::AppParams* params)
-{
-    return dmExtension::RESULT_OK;
 }
 
 static dmExtension::Result Finalize(dmExtension::Params* params)
@@ -114,4 +112,4 @@ static dmExtension::Result Finalize(dmExtension::Params* params)
 #endif // platforms
 
 
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitialize, AppFinalize, Initialize, 0, 0, Finalize)
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, Initilize, 0, OnEvent, Finalize)
