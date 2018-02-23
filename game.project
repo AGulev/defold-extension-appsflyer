@@ -19,3 +19,16 @@ scale = 0.02
 [script]
 shared_state = 1
 
+[library]
+include_dirs = defappsflyer
+
+[AppsFlyer]
+key = defappsflyer
+AppleAppID = 213123
+
+[android]
+package = com.agulev.test
+
+[ios]
+bundle_identifier = com.agulev.test
+

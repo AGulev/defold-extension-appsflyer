@@ -1,0 +1,10 @@
+name: "DefAppsFlyer"
+
+platforms:
+  arm64-ios:
+    context:
+        frameworks: []
+
+  armv7-ios:
+    context:
+        frameworks: []
