@@ -27,11 +27,17 @@ static int setAppID(lua_State* L) {
     return 0;
 }
 
+static int trackAppLaunch(lua_State* L) {
+    DefAppsFlyer_trackAppLaunch();
+    return 0;
+}
+
 static const luaL_reg Module_methods[] =
 {
     {"setAppsFlyerKey", setAppsFlyerKey},
-    {"setIsDebug ", setIsDebug},
-    {"setAppID ", setAppID},
+    {"setIsDebug", setIsDebug},
+    {"setAppID", setAppID},
+    {"trackAppLaunch", trackAppLaunch},
     {0, 0}
 };
 
@@ -62,7 +68,7 @@ dmExtension::Result Initialize(dmExtension::Params* params)
     {
         DefAppsFlyer_setAppID(package);
     }
-    #elseif defined(DM_PLATFORM_IOS)
+    #elif defined(DM_PLATFORM_IOS)
     const char* appleAppID = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.AppleAppID", 0);
     if (appleAppID)
     {

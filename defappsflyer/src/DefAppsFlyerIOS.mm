@@ -19,4 +19,9 @@ void DefAppsFlyer_setIsDebug(bool is_debug)
     [AppsFlyerTracker sharedTracker].isDebug = is_debug;
 }
 
+void DefAppsFlyer_trackAppLaunch()
+{
+    [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+}
+
 #endif

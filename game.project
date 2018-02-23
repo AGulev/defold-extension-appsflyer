@@ -1,6 +1,7 @@
 [project]
-title = My project
+title = DefAppsFlyer
 version = 0.1
+dependencies = 
 
 [bootstrap]
 main_collection = /main/main.collectionc
@@ -21,10 +22,6 @@ shared_state = 1
 
 [library]
 include_dirs = defappsflyer
-
-[AppsFlyer]
-key = defappsflyer
-AppleAppID = 213123
 
 [android]
 package = com.agulev.test
