@@ -9,6 +9,8 @@
 #include "utils/LuaUtils.h"
 #include "DefAppsFlyer.h"
 
+dmArray<TrackData> list;
+
 static int setAppsFlyerKey(lua_State* L)
 {
   DM_LUA_STACK_CHECK(L, 0);
@@ -42,9 +44,7 @@ static int trackAppLaunch(lua_State* L)
 static int trackEvent(lua_State* L)
 {
   DM_LUA_STACK_CHECK(L, 0);
-  DefAppsFlyer_trackAppLaunch();
   const char *eventName = luaL_checkstring(L, 1);
-  dmArray<TrackData> list;
   if(lua_type(L, 2) == LUA_TTABLE)
   {
     lua_pushvalue(L, 2);
@@ -55,7 +55,8 @@ static int trackEvent(lua_State* L)
       TrackData data;
       const char* k = lua_tostring(L, -2);
       const char* s = lua_tostring(L, -1);
-      if (!s) {
+      if (!s)
+      {
         char msg[256];
         snprintf(msg, sizeof(msg), "Wrong type for table attribute '%s'. Expected string, got %s", lua_tostring(L, -2), luaL_typename(L, -1) );
         luaL_error(L, msg);
@@ -73,6 +74,12 @@ static int trackEvent(lua_State* L)
     lua_pop(L, 1);
   }
   DefAppsFlyer_trackEvent(eventName, &list);
+  for(uint32_t i = list.Size() - 1; i > 0; --i)
+  {
+    free(list[i].key);
+    free(list[i].value);
+    list.EraseSwap(i);
+  }
   return 0;
 }
 
