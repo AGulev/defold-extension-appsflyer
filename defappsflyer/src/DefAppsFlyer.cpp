@@ -5,7 +5,7 @@
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_ANDROID)
+#if defined(DM_PLATFORM_IOS)
 #include "utils/LuaUtils.h"
 #include "DefAppsFlyer.h"
 
