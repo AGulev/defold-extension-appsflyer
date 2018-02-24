@@ -1,6 +1,7 @@
 function init(self)
   pprint(appsflyer)
   appsflyer.setIsDebug(true)
+  appsflyer.trackEvent("test_event", {test = "test",one = "one", two = "two"})
 end
 
 function final(self)

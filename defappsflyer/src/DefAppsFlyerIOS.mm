@@ -1,5 +1,6 @@
 #if defined(DM_PLATFORM_IOS)
 #include "DefAppsFlyer.h"
+#include <dmsdk/sdk.h>
 
 #include <AppsFlyerLib/AppsFlyerTracker.h>
 
@@ -22,6 +23,19 @@ void DefAppsFlyer_setIsDebug(bool is_debug)
 void DefAppsFlyer_trackAppLaunch()
 {
     [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+}
+
+void DefAppsFlyer_trackEvent(const char*eventName, dmArray<TrackData>* trackData)
+{
+    NSMutableDictionary* newDict = [NSMutableDictionary dictionary];
+    for(uint32_t i = 0; i != trackData->Size(); i++)
+    {
+        TrackData data = (*trackData)[i];
+        NSString *key = [NSString data:key];
+        NSString *value = [NSString data:value];
+        newDict[key] = value;
+    }
+    [[AppsFlyerTracker sharedTracker] trackEvent: [NSString eventName] withValues:newDict];
 }
 
 #endif

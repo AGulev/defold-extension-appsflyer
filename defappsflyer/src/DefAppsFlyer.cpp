@@ -10,18 +10,21 @@
 #include "DefAppsFlyer.h"
 
 static int setAppsFlyerKey(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
     const char *appsFlyerKey = luaL_checkstring(L, 1);
     DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
     return 0;
 }
 
 static int setIsDebug(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
     bool enableDebugMode_lua = luaL_checkbool(L, 1);
     DefAppsFlyer_setIsDebug(enableDebugMode_lua);
     return 0;
 }
 
 static int setAppID(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
     const char *appId = luaL_checkstring(L, 1);
     DefAppsFlyer_setAppID(appId);
     return 0;
@@ -32,25 +35,59 @@ static int trackAppLaunch(lua_State* L) {
     return 0;
 }
 
-static const luaL_reg Module_methods[] =
-{
+static int trackEvent(lua_State* L) {
+    DM_LUA_STACK_CHECK(L, 0);
+    DefAppsFlyer_trackAppLaunch();
+    const char *eventName = luaL_checkstring(L, 1);
+    dmArray<TrackData> list;
+    if(lua_type(L, 2) == LUA_TTABLE)
+    {
+        lua_pushvalue(L, 2);
+        lua_pushnil(L);
+        
+        while (lua_next(L, -2) != 0)
+        {
+            TrackData data;
+            const char* k = lua_tostring(L, -2);
+            const char* s = lua_tostring(L, -1);
+            if (!s) {
+                char msg[256];
+                snprintf(msg, sizeof(msg), "Wrong type for table attribute '%s'. Expected string, got %s", lua_tostring(L, -2), luaL_typename(L, -1) );
+                luaL_error(L, msg);
+                return 0;
+            }
+            data.key = strdup(k);
+            data.value = strdup(s);
+            if(list.Full())
+            {
+                list.OffsetCapacity(2);
+            }
+            list.Push(data);
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+    }
+    DefAppsFlyer_trackEvent(eventName, &list);
+    return 0;
+}
+
+static const luaL_reg Module_methods[] = {
     {"setAppsFlyerKey", setAppsFlyerKey},
     {"setIsDebug", setIsDebug},
     {"setAppID", setAppID},
     {"trackAppLaunch", trackAppLaunch},
+    {"trackEvent", trackEvent},
     {0, 0}
 };
 
-static void LuaInit(lua_State* L)
-{
+static void LuaInit(lua_State* L) {
     int top = lua_gettop(L);
     luaL_register(L, MODULE_NAME, Module_methods);
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
 }
 
-dmExtension::Result Initilize(dmExtension::Params* params)
-{
+dmExtension::Result Initilize(dmExtension::Params* params) {
     LuaInit(params->m_L);
     int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "AppsFlyer.is_debug", 0);
     if (isDebug > 0)
@@ -62,19 +99,19 @@ dmExtension::Result Initilize(dmExtension::Params* params)
     {
         DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
     }
-    #if defined(DM_PLATFORM_ANDROID)
+#if defined(DM_PLATFORM_ANDROID)
     const char* package = dmConfigFile::GetString(params->m_ConfigFile, "android.package", 0);
     if (package)
     {
         DefAppsFlyer_setAppID(package);
     }
-    #elif defined(DM_PLATFORM_IOS)
+#elif defined(DM_PLATFORM_IOS)
     const char* appleAppID = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.AppleAppID", 0);
     if (appleAppID)
     {
         DefAppsFlyer_setAppID(appleAppID);
     }
-    #endif
+#endif
     trackAppLaunch(params->m_L);
     return dmExtension::RESULT_OK;
 }
