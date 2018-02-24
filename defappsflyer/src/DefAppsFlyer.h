@@ -3,8 +3,8 @@
 
 struct TrackData
 {
-    char* key;
-    char* value;
+  char* key;
+  char* value;
 };
 
 extern void DefAppsFlyer_setAppsFlyerKey(const char*appsFlyerKey);
