@@ -2,7 +2,7 @@
 #include "DefAppsFlyer.h"
 #include <dmsdk/sdk.h>
 
-#include <AppsFlyerLib/AppsFlyerTracker.h>
+#include <AppsFlyerTracker/AppsFlyerTracker.h>
 
 void DefAppsFlyer_setAppsFlyerKey(const char*appsFlyerKey)
 {
