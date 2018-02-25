@@ -76,6 +76,8 @@ static void LuaInit(lua_State* L)
   assert(top == lua_gettop(L));
 }
 
+const char* appsFlyerKey;
+
 static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
 {
   int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "AppsFlyer.is_debug", 0);
@@ -83,7 +85,7 @@ static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
   {
     DefAppsFlyer_setIsDebug(true);
   }
-  const char* appsFlyerKey = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.key", 0);
+  appsFlyerKey = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.key", 0);
   if (appsFlyerKey)
   {
     DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
@@ -115,12 +117,16 @@ dmExtension::Result Initilize(dmExtension::Params* params)
 
 static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event)
 {
-#if defined(DM_PLATFORM_IOS)
+
   if (event->m_Event == dmExtension::EVENT_ID_ACTIVATEAPP)
   {
+#if defined(DM_PLATFORM_IOS)
     DefAppsFlyer_trackAppLaunch();
-  }
+#elif defined(DM_PLATFORM_ANDROID)
+    DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
 #endif
+  }
+
 }
 
 dmExtension::Result Finalize(dmExtension::Params* params)
