@@ -5,39 +5,17 @@
 #define DLIB_LOG_DOMAIN LIB_NAME
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_ANDROID)
 #include "utils/LuaUtils.h"
 #include "DefAppsFlyer.h"
 
 dmArray<TrackData> list;
-
-static int setAppsFlyerKey(lua_State* L)
-{
-  DM_LUA_STACK_CHECK(L, 0);
-  const char *appsFlyerKey = luaL_checkstring(L, 1);
-  DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
-  return 0;
-}
 
 static int setIsDebug(lua_State* L)
 {
   DM_LUA_STACK_CHECK(L, 0);
   bool enableDebugMode_lua = luaL_checkbool(L, 1);
   DefAppsFlyer_setIsDebug(enableDebugMode_lua);
-  return 0;
-}
-
-static int setAppID(lua_State* L)
-{
-  DM_LUA_STACK_CHECK(L, 0);
-  const char *appId = luaL_checkstring(L, 1);
-  DefAppsFlyer_setAppID(appId);
-  return 0;
-}
-
-static int trackAppLaunch(lua_State* L)
-{
-  DefAppsFlyer_trackAppLaunch();
   return 0;
 }
 
@@ -85,10 +63,7 @@ static int trackEvent(lua_State* L)
 
 static const luaL_reg Module_methods[] =
 {
-  {"setAppsFlyerKey", setAppsFlyerKey},
   {"setIsDebug", setIsDebug},
-  {"setAppID", setAppID},
-  {"trackAppLaunch", trackAppLaunch},
   {"trackEvent", trackEvent},
   {0, 0}
 };
@@ -101,11 +76,10 @@ static void LuaInit(lua_State* L)
   assert(top == lua_gettop(L));
 }
 
-dmExtension::Result Initilize(dmExtension::Params* params)
+static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
 {
-  LuaInit(params->m_L);
   int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "AppsFlyer.is_debug", 0);
-  if (isDebug > 0)
+  if (isDebug && isDebug > 0)
   {
     DefAppsFlyer_setIsDebug(true);
   }
@@ -114,29 +88,39 @@ dmExtension::Result Initilize(dmExtension::Params* params)
   {
     DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
   }
-#if defined(DM_PLATFORM_ANDROID)
-  const char* package = dmConfigFile::GetString(params->m_ConfigFile, "android.package", 0);
-  if (package)
+  else
   {
-    DefAppsFlyer_setAppID(package);
+    dmLogError("Pls add AppsFlyer.key to game.project\n");
   }
-#elif defined(DM_PLATFORM_IOS)
+#if defined(DM_PLATFORM_IOS)
   const char* appleAppID = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.AppleAppID", 0);
   if (appleAppID)
   {
     DefAppsFlyer_setAppID(appleAppID);
   }
+  else
+  {
+    dmLogError("Pls add AppsFlyer.AppleAppID to game.project\n");
+  }
+  DefAppsFlyer_trackAppLaunch();
 #endif
-  trackAppLaunch(params->m_L);
+  return dmExtension::RESULT_OK;
+}
+
+dmExtension::Result Initilize(dmExtension::Params* params)
+{
+  LuaInit(params->m_L);
   return dmExtension::RESULT_OK;
 }
 
 static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event)
 {
+#if defined(DM_PLATFORM_IOS)
   if (event->m_Event == dmExtension::EVENT_ID_ACTIVATEAPP)
   {
-    trackAppLaunch(params->m_L);
+    DefAppsFlyer_trackAppLaunch();
   }
+#endif
 }
 
 dmExtension::Result Finalize(dmExtension::Params* params)
@@ -146,9 +130,14 @@ dmExtension::Result Finalize(dmExtension::Params* params)
 
 #else // unsupported platforms
 
-static dmExtension::Result Initilize(dmExtension::Params* params)
+static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
 {
   dmLogWarning("Registered %s (null) Extension\n", MODULE_NAME);
+  return dmExtension::RESULT_OK;
+}
+
+static dmExtension::Result Initilize(dmExtension::Params* params)
+{
   return dmExtension::RESULT_OK;
 }
 
@@ -164,4 +153,4 @@ static dmExtension::Result Finalize(dmExtension::Params* params)
 #endif // platforms
 
 
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, 0, 0, Initilize, 0, OnEvent, Finalize)
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitilize, 0, Initilize, 0, OnEvent, Finalize)
