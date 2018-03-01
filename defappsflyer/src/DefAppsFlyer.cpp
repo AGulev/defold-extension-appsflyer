@@ -52,7 +52,7 @@ static int trackEvent(lua_State* L)
     lua_pop(L, 1);
   }
   DefAppsFlyer_trackEvent(eventName, &list);
-  for(uint32_t i = list.Size() - 1; i > 0; --i)
+  for(int i = list.Size() - 1; i >= 0; --i)
   {
     free(list[i].key);
     free(list[i].value);
