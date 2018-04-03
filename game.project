@@ -23,9 +23,9 @@ shared_state = 1
 [library]
 include_dirs = defappsflyer
 
-[AppsFlyer]
+[apps_flyer]
 key = UTyntqm3XiXzg6Tj2PCN4G
-AppleAppID = 1255979825
+apple_app_id = 1255979825
 is_debug = 1
 
 [android]

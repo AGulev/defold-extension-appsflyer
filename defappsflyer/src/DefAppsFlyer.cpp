@@ -80,29 +80,29 @@ const char* appsFlyerKey;
 
 static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
 {
-  int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "AppsFlyer.is_debug", 0);
+  int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "apps_flyer.is_debug", 0);
   if (isDebug && isDebug > 0)
   {
     DefAppsFlyer_setIsDebug(true);
   }
-  appsFlyerKey = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.key", 0);
+  appsFlyerKey = dmConfigFile::GetString(params->m_ConfigFile, "apps_flyer.key", 0);
   if (appsFlyerKey)
   {
     DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
   }
   else
   {
-    dmLogError("Pls add AppsFlyer.key to game.project\n");
+    dmLogError("Pls add apps_flyer.key to game.project\n");
   }
 #if defined(DM_PLATFORM_IOS)
-  const char* appleAppID = dmConfigFile::GetString(params->m_ConfigFile, "AppsFlyer.AppleAppID", 0);
+  const char* appleAppID = dmConfigFile::GetString(params->m_ConfigFile, "apps_flyer.apple_app_id", 0);
   if (appleAppID)
   {
     DefAppsFlyer_setAppID(appleAppID);
   }
   else
   {
-    dmLogError("Pls add AppsFlyer.AppleAppID to game.project\n");
+    dmLogError("Pls add apps_flyer.apple_app_id to game.project\n");
   }
   DefAppsFlyer_trackAppLaunch();
 #endif
