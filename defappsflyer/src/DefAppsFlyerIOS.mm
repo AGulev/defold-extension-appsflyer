@@ -32,6 +32,7 @@ void DefAppsFlyer_trackEvent(const char*eventName, dmArray<TrackData>* trackData
     NSMutableDictionary* newDict = [NSMutableDictionary dictionary];
     NSString* key;
     NSString* value;
+    NSString* event = [NSString stringWithUTF8String: eventName];
     TrackData data;
     for(uint32_t i = 0; i != trackData->Size(); i++)
     {
@@ -40,7 +41,7 @@ void DefAppsFlyer_trackEvent(const char*eventName, dmArray<TrackData>* trackData
       value = [NSString stringWithUTF8String: data.value];
       newDict[key] = value;
     }
-    [[AppsFlyerTracker sharedTracker] trackEvent: [NSString stringWithUTF8String: eventName] withValues: newDict];
+    [[AppsFlyerTracker sharedTracker] trackEvent: event withValues: newDict];
   }
 }
 
