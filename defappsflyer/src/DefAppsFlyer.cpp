@@ -78,7 +78,7 @@ static void LuaInit(lua_State* L)
 
 const char* appsFlyerKey;
 
-static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
+static dmExtension::Result AppInitilizeDefAppsFlyerDefAppsFlyer(dmExtension::AppParams* params)
 {
   int isDebug = dmConfigFile::GetInt(params->m_ConfigFile, "apps_flyer.is_debug", 0);
   if (isDebug && isDebug > 0)
@@ -109,13 +109,13 @@ static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
   return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result Initilize(dmExtension::Params* params)
+dmExtension::Result InitilizeDefAppsFlyer(dmExtension::Params* params)
 {
   LuaInit(params->m_L);
   return dmExtension::RESULT_OK;
 }
 
-static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event)
+static void OnEventDefAppsFlyer(dmExtension::Params* params, const dmExtension::Event* event)
 {
 
   if (event->m_Event == dmExtension::EVENT_ID_ACTIVATEAPP)
@@ -129,29 +129,29 @@ static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event
 
 }
 
-dmExtension::Result Finalize(dmExtension::Params* params)
+dmExtension::Result FinalizeDefAppsFlyer(dmExtension::Params* params)
 {
   return dmExtension::RESULT_OK;
 }
 
 #else // unsupported platforms
 
-static dmExtension::Result AppInitilize(dmExtension::AppParams* params)
+static dmExtension::Result AppInitilizeDefAppsFlyerDefAppsFlyer(dmExtension::AppParams* params)
 {
   dmLogWarning("Registered %s (null) Extension\n", MODULE_NAME);
   return dmExtension::RESULT_OK;
 }
 
-static dmExtension::Result Initilize(dmExtension::Params* params)
+static dmExtension::Result InitilizeDefAppsFlyer(dmExtension::Params* params)
 {
   return dmExtension::RESULT_OK;
 }
 
-static void OnEvent(dmExtension::Params* params, const dmExtension::Event* event)
+static void OnEventDefAppsFlyer(dmExtension::Params* params, const dmExtension::Event* event)
 {
 }
 
-static dmExtension::Result Finalize(dmExtension::Params* params)
+static dmExtension::Result FinalizeDefAppsFlyer(dmExtension::Params* params)
 {
   return dmExtension::RESULT_OK;
 }
@@ -159,4 +159,4 @@ static dmExtension::Result Finalize(dmExtension::Params* params)
 #endif // platforms
 
 
-DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitilize, 0, Initilize, 0, OnEvent, Finalize)
+DM_DECLARE_EXTENSION(EXTENSION_NAME, LIB_NAME, AppInitilizeDefAppsFlyerDefAppsFlyer, 0, InitilizeDefAppsFlyer, 0, OnEventDefAppsFlyer, FinalizeDefAppsFlyer)

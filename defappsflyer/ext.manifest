@@ -3,8 +3,8 @@ name: "DefAppsFlyer"
 platforms:
   arm64-ios:
     context:
-        frameworks: ["iAd", "AdSupport"]
+        frameworks: ["iAd", "AdSupport", "CFNetwork"]
 
   armv7-ios:
     context:
-        frameworks: ["iAd", "AdSupport"]
+        frameworks: ["iAd", "AdSupport", "CFNetwork"]
