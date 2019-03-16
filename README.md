@@ -34,11 +34,11 @@ If you already have your own custom AndroidManifest.xml just add next block into
 
 If you don't have other receivers listening on the com.android.vending.INSTALL_REFERRER:
 ```xml
-	<receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
-		<intent-filter>
-			 <action android:name="com.android.vending.INSTALL_REFERRER" />
-		 </intent-filter>
-	</receiver>
+<receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
+	<intent-filter>
+		 <action android:name="com.android.vending.INSTALL_REFERRER" />
+	 </intent-filter>
+</receiver>
 ```
 If you already have other receivers listening on the com.android.vending.INSTALL_REFERRER:
 ```xml
