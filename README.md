@@ -36,16 +36,16 @@ If you don't have other receivers listening on the com.android.vending.INSTALL_R
 ```xml
 <receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
 	<intent-filter>
-		 <action android:name="com.android.vending.INSTALL_REFERRER" />
-	 </intent-filter>
+		<action android:name="com.android.vending.INSTALL_REFERRER" />
+	</intent-filter>
 </receiver>
 ```
 If you already have other receivers listening on the com.android.vending.INSTALL_REFERRER:
 ```xml
 <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
-  <intent-filter>
-    <action android:name="com.android.vending.INSTALL_REFERRER" />
-  </intent-filter>
+	<intent-filter>
+		<action android:name="com.android.vending.INSTALL_REFERRER" />
+	</intent-filter>
 </receiver>
 ```
 [More information about receiver here](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android#25-setting-the-broadcastreceiver-in-androidmanifestxml).
