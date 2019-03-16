@@ -24,6 +24,7 @@ is_debug = 1
 ```
 `your_appsflyer_key` - your application Dev Key in AppsFlyer dashboard (Your Application -> App Settings -> Dev Key)
 `apple_app_id` - id of your application in App Store (part of the link to your app, for example for https://itunes.apple.com/app/id1167655230 it will be 1167655230)
+
 `is_debug` - 1 if you wanna use debug mode of the SDK and 0 for release mode.
 
 #### Extra setup step only for Android
