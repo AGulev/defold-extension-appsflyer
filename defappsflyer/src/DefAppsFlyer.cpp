@@ -8,6 +8,7 @@
 #if defined(DM_PLATFORM_IOS) || defined(DM_PLATFORM_ANDROID)
 #include "utils/LuaUtils.h"
 #include "DefAppsFlyer.h"
+#include <stdlib.h>
 
 dmArray<TrackData> list;
 

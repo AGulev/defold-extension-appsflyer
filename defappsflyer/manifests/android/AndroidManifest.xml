@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="{{android.package}}">
+  <uses-sdk android:minSdkVersion="{{android.minimum_sdk_version}}" android:targetSdkVersion="{{android.target_sdk_version}}" />
+  <application>
+        <!-- For DefAppsFlyer -->
+        <receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
+          <intent-filter>
+            <action android:name="com.android.vending.INSTALL_REFERRER" />
+          </intent-filter>
+        </receiver>
+  </application></manifest>
