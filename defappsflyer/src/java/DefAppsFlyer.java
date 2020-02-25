@@ -12,19 +12,20 @@ public class DefAppsFlyer {
     public static void DefAppsFlyer_setAppsFlyerKey(final Activity appActivity, final String appsFlyerKey) {
         AppsFlyerConversionListener conversionDataListener =
                 new AppsFlyerConversionListener() {
+                    @Override
+                    public void onConversionDataSuccess(Map<String, Object> conversionData) {
+                    }
 
                     @Override
-                    public void onAppOpenAttribution(Map<String, String> map) {
+                    public void onConversionDataFail(String errorMessage) {
                     }
 
                     @Override
-                    public void onAttributionFailure(String s) {
+                    public void onAppOpenAttribution(Map<String, String> conversionData) {
                     }
 
-                    public void onInstallConversionDataLoaded(java.util.Map<java.lang.String, java.lang.String> conversionData) {
-                    }
-
-                    public void onInstallConversionFailure(String errorMessage) {
+                    @Override
+                    public void onAttributionFailure(String errorMessage) {
                     }
                 };
         AppsFlyerLib.getInstance().init(appsFlyerKey, conversionDataListener, appActivity.getApplicationContext());
