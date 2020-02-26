@@ -27,35 +27,6 @@ is_debug = 1
 
 `is_debug` - 1 if you wanna use debug mode of the SDK and 0 for release mode.
 
-#### Extra setup step only for Android
-If you don't have custom AndroidManifest.xml in your project, just setup `defappsflyer/AndroidManifest.xml` to game.project.
-
-If you already have your own custom AndroidManifest.xml just add next block into <application> section:
-
-If you don't have other receivers listening on the com.android.vending.INSTALL_REFERRER:
-```xml
-<receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
-	<intent-filter>
-		<action android:name="com.android.vending.INSTALL_REFERRER" />
-	</intent-filter>
-</receiver>
-```
-If you already have other receivers listening on the com.android.vending.INSTALL_REFERRER:
-```xml
-<receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
-	<intent-filter>
-		<action android:name="com.android.vending.INSTALL_REFERRER" />
-	</intent-filter>
-</receiver>
-```
-[More information about receiver here](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android#25-setting-the-broadcastreceiver-in-androidmanifestxml).
-
-Also, add this permission to AndroidManifest.xml:
-```xml
-<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-```
-[More information about SDK permissions](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android#24-setting-the-required-permissions)
-
 ## API
 
 #### `appsflyer.setIsDebug(is_debug)`
