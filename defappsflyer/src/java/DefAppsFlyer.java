@@ -29,7 +29,6 @@ public class DefAppsFlyer {
                     }
                 };
         AppsFlyerLib.getInstance().init(appsFlyerKey, conversionDataListener, appActivity.getApplicationContext());
-        AppsFlyerLib.getInstance().trackAppLaunch(appActivity.getApplicationContext(), appsFlyerKey);
         AppsFlyerLib.getInstance().startTracking(appActivity.getApplication());
 
     }

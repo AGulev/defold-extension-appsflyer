@@ -30,6 +30,7 @@ is_debug = 1
 
 [android]
 package = com.agulev.test
+manifest = /builtins/manifests/android/AndroidManifest.xml
 
 [ios]
 bundle_identifier = com.agulev.test
