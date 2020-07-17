@@ -2,7 +2,7 @@
 //  AppsFlyerTracker.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 4.9.0 (813)
+//  AppsFlyer iOS SDK 4.11.2 (922)
 //  Copyright (c) 2019 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -175,6 +175,15 @@ typedef enum  {
  */
 - (void)onAppOpenAttributionFailure:(NSError *)error;
 
+/**
+ @abstract Sets the HTTP header fields of the ESP resolving to the given
+ dictionary.
+ @discussion This method replaces all header fields that may have
+ existed before this method ESP resolving call.
+ To keep default SDK dehavior - return nil;
+ */
+- (NSDictionary <NSString *, NSString *> *)allHTTPHeaderFieldsForResolveDeepLinkURL:(NSURL *)URL;
+
 @end
 
 /**
@@ -303,6 +312,50 @@ typedef enum  {
 @property(nonatomic) NSArray<NSString *> *resolveDeepLinkURLs;
 
 /**
+ For advertisers who use vanity OneLinks.
+ 
+ Objective-C:
+ 
+ <pre>
+ [[AppsFlyerTracker sharedTracker] oneLinkCustomDomains:@[@"domain.com", @"subdomain.domain.com"]];
+ </pre>
+ */
+@property(nonatomic) NSArray<NSString *> *oneLinkCustomDomains;
+
+/*
+ * Set phone number for each `trackAppLaunch` event. `phoneNumber` will be sent as SHA256 string
+ */
+@property(nonatomic) NSString *phoneNumber;
+
+- (NSString *)phoneNumber UNAVAILABLE_ATTRIBUTE;
+
+/**
+ To disable app's vendor identifier(IDFV), set disableIDFVCollection to true
+ */
+@property(nonatomic) BOOL disableIDFVCollection;
+    
+/**
+ Enable the collection of Facebook Deferred AppLinks
+ Requires Facebook SDK and Facebook app on target/client device.
+ This API must be invoked prior to initializing the AppsFlyer SDK in order to function properly.
+ 
+ Objective-C:
+ 
+ <pre>
+ [[AppsFlyerTracker sharedTracker] enableFacebookDeferredApplinksWithClass:[FBSDKAppLinkUtility class]]
+ </pre>
+ 
+ Swift:
+ 
+ <pre>
+ AppsFlyerTracker.shared().enableFacebookDeferredApplinks(with: FBSDKAppLinkUtility.self)
+ </pre>
+ 
+ @param facebookAppLinkUtilityClass requeries method call `[FBSDKAppLinkUtility class]` as param.
+ */
+- (void)enableFacebookDeferredApplinksWithClass:(Class)facebookAppLinkUtilityClass;
+
+/**
  Use this to send the user's emails
  
  @param userEmails The list of strings that hold mails
@@ -315,6 +368,8 @@ typedef enum  {
  Add the following method at the `applicationDidBecomeActive` in AppDelegate class
  */
 - (void)trackAppLaunch;
+
+- (void)trackAppLaunchWithCompletionHandler:(void (^)(NSDictionary<NSString *, id> *dictionary, NSError *error))completionHandler;
 
 /**
  Use this method to track events in your app like purchases or user actions
@@ -356,6 +411,11 @@ typedef enum  {
  @param values Contains dictionary of values for handling by backend
  */
 - (void)trackEvent:(NSString *)eventName withValues:(NSDictionary *)values;
+
+- (void)trackEventWithEventName:(NSString *)eventName
+                    eventValues:(NSDictionary<NSString * , id> * )eventValues
+              completionHandler:(void (^)(NSDictionary<NSString *, id> *dictionary, NSError *error))completionHandler
+NS_SWIFT_NAME(trackEvent(name:values:completionHandler:));
 
 /**
  To track and validate in app purchases you can call this method from the completeTransaction: method on
