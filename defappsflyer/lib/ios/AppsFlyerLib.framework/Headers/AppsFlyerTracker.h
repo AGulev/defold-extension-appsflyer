@@ -2,7 +2,7 @@
 //  AppsFlyerTracker.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 5.1.0 (951)
+//  AppsFlyer iOS SDK 5.4.1 (139)
 //  Copyright (c) 2012-2019 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -531,6 +531,15 @@ NS_SWIFT_NAME(trackEvent(name:values:completionHandler:));
 - (void)remoteDebuggingCallWithData:(NSString *)data;
 
 /**
+ Used to force the trigger `onAppOpenAttribution` delegate.
+ Notice, re-engagement, session and launch won't be counted.
+ Only for OneLink/UniversalLink/Deeplink resolving.
+ 
+ @param URL The param to resolve into -[AppsFlyerTrackerDelegate onAppOpenAttribution:]
+ */
+- (void)performOnAppAttributionWithURL:(NSURL * _Nullable)URL;
+
+/**
  @brief This property accepts a string value representing the host name for all endpoints.
  Can be used to Zero rate your application’s data usage. Contact your CSM for more information.
  
@@ -573,6 +582,23 @@ NS_SWIFT_NAME(trackEvent(name:values:completionHandler:));
  @warning This will disable all requests from AppsFlyer SDK.
  */
 @property(atomic) BOOL isStopTracking;
+
+/**
+ API to set manually Facebook deferred app link
+ */
+@property(nonatomic, nullable) NSURL *facebookDeferredAppLink;
+
+/**
+ Block an events from being shared with ad networks and other 3rd party integrations
+ Must only include letters/digits or underscore, maximum length: 45
+ */
+@property(nonatomic, nullable) NSArray<NSString *> *sharingFilter;
+
+/**
+ Block an events from being shared with any partner
+ This method overwrite -[AppsFlyerTracker setSharingFilter:]
+ */
+-(void)setSharingFilterForAllPartners;
 
 @end
 

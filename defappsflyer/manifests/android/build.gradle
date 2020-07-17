@@ -1,8 +1,5 @@
 dependencies {
 //make sure to use the latest SDK version: https://mvnrepository.com/artifact/com.appsflyer/af-android-sdk
-	implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-
-    compile 'com.appsflyer:af-android-sdk:5.1.1@aar'
-    compile 'com.android.installreferrer:installreferrer:1.0'
+    implementation 'com.appsflyer:af-android-sdk:5.2.0'
+    implementation 'com.android.installreferrer:installreferrer:1.1'
 }
