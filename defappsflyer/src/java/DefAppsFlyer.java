@@ -29,8 +29,7 @@ public class DefAppsFlyer {
                     }
                 };
         AppsFlyerLib.getInstance().init(appsFlyerKey, conversionDataListener, appActivity.getApplicationContext());
-        AppsFlyerLib.getInstance().startTracking(appActivity.getApplication());
-
+        AppsFlyerLib.getInstance().start(appActivity);
     }
 
     public static void DefAppsFlyer_setIsDebug(boolean debugMode) {
@@ -38,6 +37,6 @@ public class DefAppsFlyer {
     }
 
     public static void DefAppsFlyer_trackEvent(Activity appActivity, String eventName, Map<String, Object> eventValue) {
-        AppsFlyerLib.getInstance().trackEvent(appActivity, eventName, eventValue);
+        AppsFlyerLib.getInstance().logEvent(appActivity, eventName, eventValue);
     }
 }

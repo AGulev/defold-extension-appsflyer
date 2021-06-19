@@ -118,16 +118,12 @@ dmExtension::Result InitilizeDefAppsFlyer(dmExtension::Params* params)
 
 static void OnEventDefAppsFlyer(dmExtension::Params* params, const dmExtension::Event* event)
 {
-
+#if defined(DM_PLATFORM_IOS)
   if (event->m_Event == dmExtension::EVENT_ID_ACTIVATEAPP)
   {
-#if defined(DM_PLATFORM_IOS)
     DefAppsFlyer_trackAppLaunch();
-#elif defined(DM_PLATFORM_ANDROID)
-    DefAppsFlyer_setAppsFlyerKey(appsFlyerKey);
-#endif
   }
-
+#endif
 }
 
 dmExtension::Result FinalizeDefAppsFlyer(dmExtension::Params* params)
