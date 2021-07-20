@@ -36,6 +36,10 @@ public class DefAppsFlyer {
         AppsFlyerLib.getInstance().setDebugLog(debugMode);
     }
 
+     public static void DefAppsFlyer_setCustomerId(String customerId) {
+        AppsFlyerLib.getInstance().setCustomerUserId(customerId);
+    }
+
     public static void DefAppsFlyer_trackEvent(Activity appActivity, String eventName, Map<String, Object> eventValue) {
         AppsFlyerLib.getInstance().logEvent(appActivity, eventName, eventValue);
     }
