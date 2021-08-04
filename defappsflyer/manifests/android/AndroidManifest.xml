@@ -3,12 +3,15 @@
   package="{{android.package}}">
   <uses-sdk android:minSdkVersion="{{android.minimum_sdk_version}}" android:targetSdkVersion="{{android.target_sdk_version}}" />
   <application>
-        <!-- For DefAppsFlyer -->
-        <receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
-          <intent-filter>
-             <action android:name="com.android.vending.INSTALL_REFERRER" />
-           </intent-filter>
-        </receiver>
+    <!-- For DefAppsFlyer -->
+    <receiver android:name="com.appsflyer.SingleInstallBroadcastReceiver" android:exported="true">
+      <intent-filter>
+        <action android:name="com.android.vending.INSTALL_REFERRER" />
+      </intent-filter>
+    </receiver>
+    {{#apps_flyer.channel}}
+    <meta-data android:name="CHANNEL" android:value="{{apps_flyer.channel}}" />
+    {{/apps_flyer.channel}}
   </application>
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
