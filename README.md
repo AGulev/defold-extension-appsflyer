@@ -23,26 +23,46 @@ apple_app_id = your_app_apple_id
 android_channel = amazon
 is_debug = 1
 ```
-`your_appsflyer_key` - your application Dev Key in AppsFlyer dashboard (Your Application -> App Settings -> Dev Key)  
-`apple_app_id` - id of your application in App Store (not used now)  
-`android_channel` - custom channel (if needed)  
-`is_debug` - 1 if you wanna use debug mode of the SDK and 0 for release mode  
+
+`key` is AppsFlyer dev key  
+`apple_app_id` is id of your application in App Store (not used now)  
+`android_channel` is custom channel (if needed)  
+`is_debug` 1 if you wanna use debug logs of the SDK and 0 for release mode  
 
 ## API
 
 #### `appsflyer.start_sdk()`
 
-Method for starting SDK.
+Starts the SDK.
+
+Typical usage of deferred SDK start is when an app would like to request consent from the user to collect data.
 
 #### `appsflyer.set_debug_log(is_enabled)`
 
 `is_enabled` boolean value
 
-Method for manually switching SDK to debug mode. The same flag available in game.project settings appsflyer.is_debug = 1 (true) or 0 (false) value.
+Enables Debug logs for the AppsFlyer SDK. Should only be set to true in development environments.
 
 ```lua
-appsflyer.set_debug_log(true) -- turn-on debug mode
-appsflyer.set_debug_log(false) -- turn-off debug mode
+appsflyer.set_debug_log(true)
+appsflyer.set_debug_log(false)
+```
+
+#### `appsflyer.set_callback(callback)`
+
+Sets the callback function to receive conversion data events.
+
+```lua
+local function appsflyer_callback(self, message_id, message)
+    if message_id == appsflyer.CONVERSION_DATA_SUCCESS then
+        print("Conversion data loaded:");
+        pprint(message);
+    elseif message_id == appsflyer.CONVERSION_DATA_FAIL then
+        print("Conversion data loading failed:", message.error);
+    end
+end
+
+appsflyer.set_callback(appsflyer_callback)
 ```
 
 #### `appsflyer.log_event(event, event_data)`
@@ -50,9 +70,9 @@ appsflyer.set_debug_log(false) -- turn-off debug mode
 `event` is an event name that maybe your custom or one of predefined by Appsflyer  
 `event_data` is a table with data for the `event`  
 
-More information about predefined AppsFlyer methods [here](https://support.appsflyer.com/hc/en-us/articles/115005544169-Rich-In-App-Events-Android-and-iOS#Event-Types).
+Log an in-app event.
 
-Track event to Appsflyer analytics.
+More information about predefined AppsFlyer methods [here](https://support.appsflyer.com/hc/en-us/articles/115005544169-Rich-In-App-Events-Android-and-iOS#Event-Types).
 
 ```lua
 appsflyer.log_event("af_level_achieved", {
