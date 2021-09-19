@@ -85,4 +85,9 @@ public class AppsflyerJNI {
         Log.d(TAG, "Log event: " + eventName);
         AppsFlyerLib.getInstance().logEvent(activity, eventName, eventValue);
     }
+
+    public void setCustomerUserId(String userId) {
+        Log.d(TAG, "Set customer user id: " + userId);
+        AppsFlyerLib.getInstance().setCustomerUserId(userId);
+    }
 }

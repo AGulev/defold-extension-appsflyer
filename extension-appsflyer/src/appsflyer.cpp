@@ -85,12 +85,21 @@ static int Lua_LogEvent(lua_State* L)
     return 0;
 }
 
+static int Lua_SetCustomerUserId(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 0);
+    const char *customerUserId = luaL_checkstring(L, 1);
+    SetCustomerUserId(customerUserId);
+    return 0;
+}
+
 static const luaL_reg Module_methods[] =
 {
     {"start_sdk", Lua_StartSDK},
     {"set_callback", Lua_SetCallback},
     {"set_debug_log", Lua_SetDebugLog},
     {"log_event", Lua_LogEvent},
+    {"set_customer_user_id", Lua_SetCustomerUserId},
     {0, 0}
 };
 

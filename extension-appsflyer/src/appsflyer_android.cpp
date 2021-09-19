@@ -23,9 +23,20 @@ struct Appsflyer
     jmethodID       m_StartSDK;
     jmethodID       m_SetDebugLog;
     jmethodID       m_LogEvent;
+    jmethodID       m_SetCustomerUserId;
 };
 
 static Appsflyer g_appsflyer;
+
+static void CallVoidMethodChar(jobject instance, jmethodID method, const char* cstr)
+{
+    ThreadAttacher attacher;
+    JNIEnv *env = attacher.env;
+
+    jstring jstr = env->NewStringUTF(cstr);
+    env->CallVoidMethod(instance, method, jstr);
+    env->DeleteLocalRef(jstr);
+}
 
 static void InitJNIMethods(JNIEnv* env, jclass cls)
 {
@@ -33,6 +44,7 @@ static void InitJNIMethods(JNIEnv* env, jclass cls)
     g_appsflyer.m_StartSDK = env->GetMethodID(cls, "startSDK", "()V");
     g_appsflyer.m_SetDebugLog = env->GetMethodID(cls, "setDebugLog", "(Z)V");
     g_appsflyer.m_LogEvent = env->GetMethodID(cls, "logEvent", "(Ljava/lang/String;Ljava/util/Map;)V");
+    g_appsflyer.m_SetCustomerUserId = env->GetMethodID(cls, "setCustomerUserId", "(Ljava/lang/String;)V");
 }
 
 void Initialize_Ext()
@@ -99,6 +111,11 @@ void LogEvent(const char* eventName, dmArray<TrackData>* trackData)
     env->DeleteLocalRef(hashMapClass);
     env->DeleteLocalRef(hashMapObj);
     env->DeleteLocalRef(jEventName);
+}
+
+void SetCustomerUserId(const char* userId)
+{
+    CallVoidMethodChar(g_appsflyer.m_AppsflyerJNI, g_appsflyer.m_SetCustomerUserId, userId);
 }
 
 } // namespace

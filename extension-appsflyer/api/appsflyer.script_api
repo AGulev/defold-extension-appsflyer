@@ -1,0 +1,56 @@
+- name: appsflyer
+  type: table
+  desc: Functions and constants for interacting with mnu APIs
+
+  members:
+
+#*****************************************************************************************************
+
+  - name: start_sdk
+    type: function
+
+#*****************************************************************************************************
+
+  - name: set_callback
+    type: function
+
+    parameters:
+      - name: callback
+        type: function
+
+#*****************************************************************************************************
+
+  - name: set_debug_log
+    type: function
+
+    parameters:
+      - name: is_debug
+        type: boolean
+
+#*****************************************************************************************************
+
+  - name: set_customer_user_id
+    type: function
+
+    parameters:
+      - name: user_id
+        type: string
+
+#*****************************************************************************************************
+
+  - name: log_event
+    type: function
+
+    parameters:
+      - name: event_name
+        type: string
+      - name: event_params
+        type: table
+
+#*****************************************************************************************************
+
+  - name: CONVERSION_DATA_SUCCESS
+    type: number
+
+  - name: CONVERSION_DATA_FAIL
+    type: number

@@ -9,6 +9,8 @@ end
 
 function init(self)
     if appsflyer then
+        appsflyer.set_debug_log(true)
+        appsflyer.set_customer_user_id("test_user_id")
         appsflyer.set_callback(appsflyer_callback)
         appsflyer.start_sdk()
         timer.delay(5, false, function()

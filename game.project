@@ -9,12 +9,12 @@ main_collection = /main/main.collectionc
 include_dirs = extension-appsflyer
 
 [apps_flyer]
-key = UTyntqm3XiXzg6Tj2PCN4G
-apple_app_id = 1255979825
+key = 
+apple_app_id = 1480533744
 is_debug = 1
 
 [android]
-package = com.agulev.test
+package = com.agulev.testappsflyer
 minimum_sdk_version = 21
 
 [ios]
