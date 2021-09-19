@@ -15,6 +15,12 @@ void DefAppsFlyer_setAppID(const char*appleAppID)
   [AppsFlyerTracker sharedTracker].appleAppID = [NSString stringWithUTF8String:appleAppID];
 }
 
+void DefAppsFlyer_setCustomerId(const char*customerId)
+{
+  [AppsFlyerTracker sharedTracker].customerUserID = [NSString stringWithUTF8String:customerId];
+}
+
+
 void DefAppsFlyer_setIsDebug(bool is_debug)
 {
   [AppsFlyerTracker sharedTracker].isDebug = is_debug;

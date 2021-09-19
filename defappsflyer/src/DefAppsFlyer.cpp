@@ -20,6 +20,14 @@ static int setIsDebug(lua_State* L)
   return 0;
 }
 
+static int setCustomerId(lua_State* L)
+{
+  DM_LUA_STACK_CHECK(L, 0);
+  const char *customerId = luaL_checkstring(L, 1);
+  DefAppsFlyer_setCustomerId(customerId);
+  return 0;
+}
+
 static int trackEvent(lua_State* L)
 {
   DM_LUA_STACK_CHECK(L, 0);
@@ -64,6 +72,7 @@ static int trackEvent(lua_State* L)
 
 static const luaL_reg Module_methods[] =
 {
+  {"setCustomerId", setCustomerId},
   {"setIsDebug", setIsDebug},
   {"trackEvent", trackEvent},
   {0, 0}
