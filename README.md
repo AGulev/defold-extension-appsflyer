@@ -93,6 +93,16 @@ appsflyer.log_event("af_purchase",{
 })
 ```
 
+#### `appsflyer.set_customer_user_id(user_id)`
+
+Setting your own Customer User ID in the AppsFlyer SDK enables you to cross-reference your own unique ID with the AppsFlyer ID and other identifiers.
+
+More information about this method is available [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-guide-for-marketers#additional-apis-set-customer-user-id)
+
+```lua
+appsflyer.set_customer_user_id("your_customer_user_id")
+```
+
 ## Issues and suggestions
 
 If you have any issues, questions or suggestions please [create an issue](https://github.com/AGulev/DefAppsFlyer/issues) or contact me: me@agulev.com
