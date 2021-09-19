@@ -29,6 +29,12 @@ is_debug = 1
 `android_channel` is custom channel (if needed)  
 `is_debug` 1 if you wanna use debug logs of the SDK and 0 for release mode  
 
+`android.permission.READ_PHONE_STATE` is optional for AppsFlyer. Please add it into your `AndroidManifest.xml` if it's important for you.
+ ```
+ <!-- Optional : -->
+ <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+ ```
+
 ## API
 
 #### `appsflyer.start_sdk()`
