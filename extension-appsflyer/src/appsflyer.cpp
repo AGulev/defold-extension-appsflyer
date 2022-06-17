@@ -2,7 +2,9 @@
 #define LIB_NAME "Appsflyer"
 #define MODULE_NAME "appsflyer"
 
+#ifndef DLIB_LOG_DOMAIN
 #define DLIB_LOG_DOMAIN LIB_NAME
+#endif
 
 #include <dmsdk/sdk.h>
 
