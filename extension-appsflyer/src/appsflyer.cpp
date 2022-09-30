@@ -26,6 +26,13 @@ static int Lua_StartSDK(lua_State* L)
     return 0;
 }
 
+static int Lua_GetAppsFlyerUID(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+
+    return GetAppsFlyerUID(L);
+}
+
 static int Lua_SetCallback(lua_State* L)
 {
     DM_LUA_STACK_CHECK(L, 0);
@@ -102,6 +109,7 @@ static const luaL_reg Module_methods[] =
     {"set_debug_log", Lua_SetDebugLog},
     {"log_event", Lua_LogEvent},
     {"set_customer_user_id", Lua_SetCustomerUserId},
+    {"get_appsflyer_uid", Lua_GetAppsFlyerUID},
     {0, 0}
 };
 
