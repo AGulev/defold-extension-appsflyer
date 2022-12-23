@@ -8,7 +8,7 @@
 
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_ANDROID)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
 
 #include <stdlib.h>
 #include "appsflyer_private.h"

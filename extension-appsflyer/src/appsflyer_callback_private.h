@@ -1,4 +1,4 @@
-#if defined(DM_PLATFORM_ANDROID)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
 #pragma once
 
 #include "appsflyer_private.h"
