@@ -13,6 +13,7 @@ struct TrackData
 };
 
 void Initialize_Ext();
+void Finalize_Ext();
 
 void InitializeSDK(const char* key, const char* appleAppID);
 void StartSDK();

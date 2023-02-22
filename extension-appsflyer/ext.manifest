@@ -5,5 +5,3 @@ platforms:
         context:
             frameworks: ["iAd", "AdServices", "AdSupport", "AppTrackingTransparency", "AudioToolbox", "AVFoundation", "CoreGraphics", "CoreMedia", "CoreMotion", "CoreTelephony", "Foundation", "MessageUI", "SafariServices", "StoreKit", "SystemConfiguration", "UIKit", "WebKit"]
             linkFlags:  ["-ObjC"]
-            flags:      ["-fobjc-arc"]
-            libs:       ["z"]

@@ -5,6 +5,12 @@
 
 @implementation DEFAFSDKDelegate
 
+void ForwardIOSEventAppsf(int type, NSString * json)
+{
+    const char *JsonCString = [json UTF8String];
+    AddToQueueCallback((dmAppsflyer::MessageId)type, JsonCString);
+}
+
 - (instancetype)init {
     self = [super init];
     if (self) {
@@ -17,29 +23,40 @@
  `installData` contains information about install.
  Organic/non-organic, etc.
  */
-- (void)onConversionDataSuccess:(NSDictionary *)conversionInfo {
-    _onConversionDataSuccess([DEFAFSDKDelegate dictionaryByReplacingNullsWithStrings:conversionInfo]);
+- (void)onConversionDataSuccess:(NSDictionary *)installData {
+    NSLog(@"AppsFlyer onConversionDataSuccess");
+    NSData *data = [NSJSONSerialization dataWithJSONObject: installData options: 0 error: nil];
+    NSString *serializedParameters = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+    ForwardIOSEventAppsf(1, serializedParameters);
 }
 
 /**
  Any errors that occurred during the conversion request.
  */
 - (void)onConversionDataFail:(NSError *)error {
-    _onConversionDataFail(error.localizedDescription);
+    NSLog(@"AppsFlyer conversion data error %@", error);
 }
 
 /**
  `attributionData` contains information about OneLink, deeplink.
  */
 - (void)onAppOpenAttribution:(NSDictionary *)attributionData {
-    _onAppOpenAttribution(attributionData);
+
+    NSLog(@"AppsFlyer onAppOpenAttribution");
+    NSData *data = [NSJSONSerialization dataWithJSONObject: attributionData options: 0 error: nil];
+    NSString *serializedParameters = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+    ForwardIOSEventAppsf(3, serializedParameters);
 }
 
 /**
  Any errors that occurred during the attribution request.
  */
 - (void)onAppOpenAttributionFailure:(NSError *)error {
-    _onAppOpenAttributionFailure(error.localizedDescription);
+    NSLog(@"Appsflyer onAppOpenAttributionFailure %@", error);
+}
+
+- (void)didResolveDeepLink:(AppsFlyerDeepLinkResult *)result{
+    NSLog(@"Appsflyer didResolveDeepLink");
 }
 
 + (NSDictionary *)dictionaryByReplacingNullsWithStrings:(NSDictionary *)dict {

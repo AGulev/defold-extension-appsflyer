@@ -7,48 +7,48 @@
 #include "appsflyer_private.h"
 #import "appsflyer_callback_private.h"
 #import "DEFAFSDKDelegate.h"
-
+#import "AppsFlyerAttribution.h"
+#import "AppsflyerAppDelegate.h"
 
 namespace dmAppsflyer {
 
-void ForwardIOSEvent(int type, NSString * json)
+
+struct AppsflyerAppDelegateRegister
 {
-    const char *JsonCString = [json UTF8String];
-    AddToQueueCallback((MessageId)type, JsonCString);
-}
+  AppsflyerAppDelegate* m_Delegate;
+
+    AppsflyerAppDelegateRegister() {
+        m_Delegate = [[AppsflyerAppDelegate alloc] init];
+        dmExtension::RegisteriOSUIApplicationDelegate(m_Delegate);
+    }
+
+    ~AppsflyerAppDelegateRegister() {
+        dmExtension::UnregisteriOSUIApplicationDelegate(m_Delegate);
+        [m_Delegate release];
+    }
+};
+
+
+AppsflyerAppDelegateRegister g_appDelegate;
 
 void Initialize_Ext(){
-
 }
 
-
-void onConversionDataSuccess(NSDictionary *installData) {
-  
-    NSData *data = [NSJSONSerialization dataWithJSONObject: installData options: 0 error: nil];
-    NSString *serializedParameters = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
-    ForwardIOSEvent(1, serializedParameters);
+void Finalize_Ext(){
 }
 
-void onConversionDataFail(NSString *error) {
-    NSLog(@"%@", error);
-}
-void onAppOpenAttribution(NSDictionary *attributionData) {
-
-}
-void onAppOpenAttributionFailure(NSString *error) {
-    NSLog(@"%@", error);
-}
 
 void InitializeSDK(const char* key, const char* appleAppID){
-  
+              NSLog(@"AppsFlyer InitializeSDK");
+  [AppsFlyerLib shared].isDebug = true;
   DEFAFSDKDelegate *delegate = [[DEFAFSDKDelegate alloc] init];
-  delegate.onConversionDataSuccess = onConversionDataSuccess;
-  delegate.onConversionDataFail = onConversionDataFail;
-  delegate.onAppOpenAttribution = onAppOpenAttribution;
-  delegate.onAppOpenAttributionFailure = onAppOpenAttributionFailure;
+  [AppsFlyerAttribution shared].isBridgeReady = YES;
+  [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object: [AppsFlyerAttribution shared]];
   [[AppsFlyerLib shared] setAppsFlyerDevKey:[NSString stringWithUTF8String: key]];
   [[AppsFlyerLib shared] setAppleAppID:[NSString stringWithUTF8String: appleAppID]];
-  [AppsFlyerLib shared].delegate = (id<AppsFlyerLibDelegate>)delegate;
+  [[AppsFlyerLib shared] setDelegate:delegate];
+  [[AppsFlyerLib shared] setDeepLinkDelegate:delegate];
+ // [[AppsFlyerLib shared] addPushNotificationDeepLinkPath:@[@"af_push_link"]];
 }
 
 void StartSDK(){
@@ -86,6 +86,6 @@ int GetAppsFlyerUID(lua_State* L){
     return 1;
 }
 
-} // namespace
+ }// namespace
 
 #endif // platform
