@@ -1,5 +1,5 @@
 dependencies {
     //make sure to use the latest SDK version: https://mvnrepository.com/artifact/com.appsflyer/af-android-sdk
-	implementation 'com.appsflyer:af-android-sdk:6.9.1'
+	implementation 'com.appsflyer:af-android-sdk:6.9.4'
 	implementation 'com.android.installreferrer:installreferrer:2.2'
 }
