@@ -1,3 +1,6 @@
+repositories {
+    mavenCentral()
+}
 dependencies {
     //make sure to use the latest SDK version: https://mvnrepository.com/artifact/com.appsflyer/af-android-sdk
 	implementation 'com.appsflyer:af-android-sdk:6.10.2'
