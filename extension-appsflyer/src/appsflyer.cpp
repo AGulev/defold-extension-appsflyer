@@ -8,7 +8,7 @@
 
 #include <dmsdk/sdk.h>
 
-#if defined(DM_PLATFORM_ANDROID)
+#if defined(DM_PLATFORM_ANDROID) || defined(DM_PLATFORM_IOS)
 
 #include <stdlib.h>
 #include "appsflyer_private.h"
@@ -24,6 +24,13 @@ static int Lua_StartSDK(lua_State* L)
     DM_LUA_STACK_CHECK(L, 0);
     StartSDK();
     return 0;
+}
+
+static int Lua_GetAppsFlyerUID(lua_State* L)
+{
+    DM_LUA_STACK_CHECK(L, 1);
+
+    return GetAppsFlyerUID(L);
 }
 
 static int Lua_SetCallback(lua_State* L)
@@ -102,6 +109,7 @@ static const luaL_reg Module_methods[] =
     {"set_debug_log", Lua_SetDebugLog},
     {"log_event", Lua_LogEvent},
     {"set_customer_user_id", Lua_SetCustomerUserId},
+    {"get_appsflyer_uid", Lua_GetAppsFlyerUID},
     {0, 0}
 };
 
