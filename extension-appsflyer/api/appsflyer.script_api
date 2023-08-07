@@ -49,6 +49,16 @@
 
 #*****************************************************************************************************
 
+  - name: get_appsflyer_uid
+    type: function
+
+    return:
+      - name: uid
+        type: string
+        desc: AppsFlyer's unique device ID
+
+#*****************************************************************************************************
+
   - name: CONVERSION_DATA_SUCCESS
     type: number
 

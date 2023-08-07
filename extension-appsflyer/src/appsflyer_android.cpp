@@ -23,6 +23,7 @@ struct Appsflyer
     jmethodID       m_SetDebugLog;
     jmethodID       m_LogEvent;
     jmethodID       m_SetCustomerUserId;
+    jmethodID       m_GetAppsFlyerUID;
 };
 
 static Appsflyer g_appsflyer;
@@ -44,6 +45,7 @@ static void InitJNIMethods(JNIEnv* env, jclass cls)
     g_appsflyer.m_SetDebugLog = env->GetMethodID(cls, "setDebugLog", "(Z)V");
     g_appsflyer.m_LogEvent = env->GetMethodID(cls, "logEvent", "(Ljava/lang/String;Ljava/util/Map;)V");
     g_appsflyer.m_SetCustomerUserId = env->GetMethodID(cls, "setCustomerUserId", "(Ljava/lang/String;)V");
+    g_appsflyer.m_GetAppsFlyerUID = env->GetMethodID(cls, "getAppsFlyerUID", "()Ljava/lang/String;");
 }
 
 void Initialize_Ext()
@@ -70,6 +72,16 @@ void StartSDK()
     dmAndroid::ThreadAttacher threadAttacher;
     JNIEnv* env = threadAttacher.GetEnv();
     env->CallVoidMethod(g_appsflyer.m_AppsflyerJNI, g_appsflyer.m_StartSDK);
+}
+
+int GetAppsFlyerUID(lua_State* L)
+{
+    dmAndroid::ThreadAttacher threadAttacher;
+    JNIEnv* env = threadAttacher.GetEnv();
+    jstring jni_device_uid = (jstring)env->CallObjectMethod(g_appsflyer.m_AppsflyerJNI, g_appsflyer.m_GetAppsFlyerUID);
+    lua_pushstring(L, env->GetStringUTFChars(jni_device_uid, 0));
+    env->DeleteLocalRef(jni_device_uid);
+    return 1;
 }
 
 void SetDebugLog(bool is_debug)

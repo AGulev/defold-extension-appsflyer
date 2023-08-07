@@ -90,4 +90,8 @@ public class AppsflyerJNI {
         Log.d(TAG, "Set customer user id: " + userId);
         AppsFlyerLib.getInstance().setCustomerUserId(userId);
     }
+
+    public String getAppsFlyerUID() {
+        return AppsFlyerLib.getInstance().getAppsFlyerUID(activity);
+    }
 }
