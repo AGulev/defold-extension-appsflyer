@@ -1,4 +1,3 @@
-#if defined(DM_PLATFORM_IOS)
 #import "AppsflyerAppDelegate.h"
 #import <AppsFlyerLib/AppsFlyerLib.h>
 #import "AppsFlyerAttribution.h"
@@ -29,6 +28,3 @@
   }
 
 @end
-
-#endif // platform
- 
