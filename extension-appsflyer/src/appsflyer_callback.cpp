@@ -35,6 +35,7 @@ static void InvokeCallback(MessageId type, const char* json)
         return;
     }
     
+    lua_pushnumber(L, type);
     dmScript::JsonToLua(L, json, strlen(json)); // throws lua error if it fails
 
     int ret = dmScript::PCall(L, 3, 0);
