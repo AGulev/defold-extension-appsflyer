@@ -58,9 +58,6 @@ void Initialize_Ext()
     g_appsflyer.m_AppsflyerJNI = env->NewGlobalRef(env->NewObject(cls, jni_constructor, threadAttacher.GetActivity()->clazz));
 }
 
-void Finalize_Ext(){
-}
-
 void InitializeSDK(const char* key, const char* appleAppID)
 {
     dmAndroid::ThreadAttacher threadAttacher;

@@ -26,22 +26,18 @@ static void InvokeCallback(MessageId type, const char* json)
         dmLogError("Appsflyer callback is invalid. Set new callback using `appsflyer.set_callback()` function.");
         return;
     }
-
     lua_State* L = dmScript::GetCallbackLuaContext(m_luaCallback);
     int top = lua_gettop(L);
-
     if (!dmScript::SetupCallback(m_luaCallback))
     {
         return;
     }
 
-    lua_pushnumber(L, type);
-    dmScript::JsonToLua(L, json, strlen(json)); 
+    dmScript::JsonToLua(L, json, strlen(json)); // throws lua error if it fails
 
     int ret = dmScript::PCall(L, 3, 0);
     (void)ret;
     dmScript::TeardownCallback(m_luaCallback);
-
     assert(top == lua_gettop(L));
 }
 

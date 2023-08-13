@@ -1,4 +1,4 @@
-
+#if defined(DM_PLATFORM_IOS)
 #import <Foundation/Foundation.h>
 #import "AppsFlyerAttribution.h"
 
@@ -77,3 +77,4 @@
     }
 }
 @end
+#endif // platform
