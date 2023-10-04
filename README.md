@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/AGulev/defold-extension-appsflyer/workflows/Build%20with%20bob/badge.svg)](https://github.com/AGulev/defold-extension-appsflyer/actions)
 
-[AppsFlyer](https://appsflyer.com) [Native Extension](https://www.defold.com/manuals/extensions/) for the [Defold Game Engine](https://www.defold.com) (Android only now).
+[AppsFlyer](https://appsflyer.com) [Native Extension](https://www.defold.com/manuals/extensions/) for the [Defold Game Engine](https://www.defold.com).
 
 At the moment it is a very basic implementation of install tracking and custom event tracking. If you need some more functions feel free to contribute or [open an issue](https://github.com/AGulev/DefAppsFlyer/issues).
 
