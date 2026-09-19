@@ -54,4 +54,4 @@ Suggested order for future bindings: UDL callbacks; typed/nested event values; a
 
 ## Validation
 
-See [tests/README.md](../tests/README.md) for reproducible builds and [test results](test-results.md) for the actual devices and outcomes. Simulator testing verifies the extension, initialization, request callbacks and server delivery. It does not establish production ad attribution, IDFA/ATT behavior, SKAdNetwork postbacks, Play Install Referrer campaigns or purchase validation on physical devices.
+See [tests/README.md](../tests/README.md) for reproducible builds and integration checks. Simulator testing covers the extension, initialization, request callbacks and server delivery. Production ad attribution, IDFA/ATT behavior, SKAdNetwork postbacks, Play Install Referrer campaigns and purchase validation require separate physical-device/store tests.

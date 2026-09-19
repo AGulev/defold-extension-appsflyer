@@ -155,7 +155,7 @@ Partner lists must be contiguous Lua arrays starting at index 1. Each entry must
 
 ## API coverage and tests
 
-The extension exposes 14 functions and six callback constants. Unified Deep Linking, typed/nested event values, dedicated ad revenue and receipt validation remain unbound. The [API audit](sdk7-upgrade.md#lua-api-coverage) lists the remaining gaps. See [test results](test-results.md) for the tested architectures, simulator runs and live-delivery status.
+The extension exposes 14 functions and six callback constants. Unified Deep Linking, typed/nested event values, dedicated ad revenue and receipt validation remain unbound. The [API audit](sdk7-upgrade.md#lua-api-coverage) lists the remaining gaps. See [simulator test instructions](../tests/README.md) for reproducible builds and integration checks.
 
 ## Issues and suggestions
 
