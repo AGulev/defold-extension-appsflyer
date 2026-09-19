@@ -7,61 +7,82 @@
 namespace dmAppsflyer {
 
 static dmScript::LuaCallbackInfo* m_luaCallback = 0x0;
+static dmScript::LuaCallbackInfo* m_activeCallback = 0x0;
 static dmArray<CallbackData> m_callbacksQueue;
 static dmMutex::HMutex m_mutex;
+static bool m_acceptCallbacks = false;
 
-static void DestroyCallback()
+void ClearLuaCallback()
 {
     if (m_luaCallback != 0x0)
     {
-        dmScript::DestroyCallback(m_luaCallback);
+        // Lua may replace or clear its callback while it is being invoked.
+        // Keep that callback alive until TeardownCallback has restored Lua state.
+        if (m_luaCallback != m_activeCallback)
+            dmScript::DestroyCallback(m_luaCallback);
         m_luaCallback = 0x0;
     }
 }
 
 static void InvokeCallback(MessageId type, const char* json)
 {
-    if (!dmScript::IsCallbackValid(m_luaCallback))
+    if (!m_luaCallback || !dmScript::IsCallbackValid(m_luaCallback))
     {
         dmLogError("Appsflyer callback is invalid. Set new callback using `appsflyer.set_callback()` function.");
         return;
     }
 
-    lua_State* L = dmScript::GetCallbackLuaContext(m_luaCallback);
+    dmScript::LuaCallbackInfo* callback = m_luaCallback;
+    lua_State* L = dmScript::GetCallbackLuaContext(callback);
     int top = lua_gettop(L);
 
-    if (!dmScript::SetupCallback(m_luaCallback))
+    if (!dmScript::SetupCallback(callback))
     {
         return;
     }
     
+    m_activeCallback = callback;
     lua_pushnumber(L, type);
-    dmScript::JsonToLua(L, json, strlen(json)); // throws lua error if it fails
+    dmScript::JsonToLua(L, json, strlen(json)); // SDK messages contain valid JSON.
 
     int ret = dmScript::PCall(L, 3, 0);
     (void)ret;
-    dmScript::TeardownCallback(m_luaCallback);
+    dmScript::TeardownCallback(callback);
+    m_activeCallback = 0x0;
+    if (callback != m_luaCallback)
+        dmScript::DestroyCallback(callback);
 
     assert(top == lua_gettop(L));
 }
 
 void InitializeCallback()
 {
-    m_mutex = dmMutex::New();
+    if (!m_mutex)
+        m_mutex = dmMutex::New();
+    DM_MUTEX_SCOPED_LOCK(m_mutex);
+    m_acceptCallbacks = true;
 }
 
 void FinalizeCallback()
 {
-    dmMutex::Delete(m_mutex);
-    DestroyCallback();
+    // SDK requests can finish after extension shutdown. Keep the mutex alive
+    // for the process lifetime so those callbacks can safely be discarded.
+    DM_MUTEX_SCOPED_LOCK(m_mutex);
+    m_acceptCallbacks = false;
+    for (uint32_t i = 0; i < m_callbacksQueue.Size(); ++i)
+        free(m_callbacksQueue[i].json);
+    m_callbacksQueue.SetSize(0);
 }
 
 void SetLuaCallback(lua_State* L, int pos)
 {
     int type = lua_type(L, pos);
+    if (type != LUA_TNONE && type != LUA_TNIL)
+        luaL_checktype(L, pos, LUA_TFUNCTION);
+    ClearLuaCallback();
     if (type == LUA_TNONE || type == LUA_TNIL)
     {
-        DestroyCallback();
+        return;
     }
     else
     {
@@ -71,11 +92,14 @@ void SetLuaCallback(lua_State* L, int pos)
 
 void AddToQueueCallback(MessageId type, const char* json)
 {
+    DM_MUTEX_SCOPED_LOCK(m_mutex);
+    if (!m_acceptCallbacks)
+        return;
+
     CallbackData data;
     data.msg = type;
-    data.json = json ? strdup(json) : NULL;
+    data.json = strdup(json ? json : "{}");
 
-    DM_MUTEX_SCOPED_LOCK(m_mutex);
     if(m_callbacksQueue.Full())
     {
         m_callbacksQueue.OffsetCapacity(2);
@@ -85,7 +109,7 @@ void AddToQueueCallback(MessageId type, const char* json)
 
 void UpdateCallback()
 {
-    if (m_callbacksQueue.Empty())
+    if (!m_luaCallback)
     {
         return;
     }
@@ -93,6 +117,8 @@ void UpdateCallback()
     dmArray<CallbackData> tmp;
     {
         DM_MUTEX_SCOPED_LOCK(m_mutex);
+        if (m_callbacksQueue.Empty())
+            return;
         tmp.Swap(m_callbacksQueue);
     }
 

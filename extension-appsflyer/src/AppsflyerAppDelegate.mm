@@ -6,7 +6,13 @@
 
 @implementation AppsflyerAppDelegate
 
-- (void)applicationDidBecomeActive:(nonnull UIApplication *)application {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    if ([AppsFlyerAttribution shared].isBridgeReady) {
+        [[AppsFlyerLib shared] handleLaunchOptions:launchOptions];
+    } else {
+        [AppsFlyerAttribution shared].launchOptions = launchOptions;
+    }
+    return YES;
 }
 
 // Reports app open from a Universal Link for iOS 9 or above
@@ -31,4 +37,3 @@
 @end
 
 #endif // platform
- 

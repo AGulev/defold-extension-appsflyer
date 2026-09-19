@@ -8,9 +8,9 @@ main_collection = /main/main.collectionc
 [library]
 include_dirs = extension-appsflyer
 
-[apps_flyer]
+[appsflyer]
 key = 
-apple_app_id = 1480533744
+apple_app_id =
 is_debug = 1
 
 [android]
@@ -19,4 +19,3 @@ minimum_sdk_version = 21
 
 [ios]
 bundle_identifier = com.agulev.test
-

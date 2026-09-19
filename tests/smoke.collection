@@ -1,0 +1,10 @@
+name: "smoke"
+embedded_instances {
+  id: "smoke"
+  data: "components {\n"
+  "  id: \"script\"\n"
+  "  component: \"/tests/smoke.script\"\n"
+  "}\n"
+  position { x: 0 y: 0 z: 0 }
+  rotation { x: 0 y: 0 z: 0 w: 1 }
+}

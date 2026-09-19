@@ -2,69 +2,45 @@ name: Build with bob
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 env:
-  VERSION_FILENAME: 'info.json'
-  CHANNEL: 'beta'
-  BUILD_SERVER: 'https://build-stage.defold.com'
+  CHANNEL: stable
+  BUILD_SERVER: https://build.defold.com
 
 jobs:
-  build_with_bob:
+  build:
     strategy:
+      fail-fast: false
       matrix:
-        platform: [armv7-android, x86_64-linux, x86_64-win32, x86-win32, js-web]
-    runs-on: ubuntu-latest
-
-    name: Build
+        include:
+          - { platform: armv7-android, architectures: armv7-android, os: ubuntu-latest }
+          - { platform: arm64-android, architectures: arm64-android, os: ubuntu-latest }
+          - { platform: x86_64-linux, architectures: x86_64-linux, os: ubuntu-latest }
+          - { platform: x86_64-win32, architectures: x86_64-win32, os: ubuntu-latest }
+          - { platform: js-web, architectures: js-web, os: ubuntu-latest }
+          - { platform: arm64-ios, architectures: 'arm64-ios,x86_64-ios', os: macos-latest }
+          - { platform: x86_64-darwin, architectures: x86_64-darwin, os: macos-latest }
+    runs-on: ${{ matrix.os }}
+    name: Build ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v3
-        with: { java-version: '17.0.5+8', distribution: 'temurin'}
-
-      - name: Get Defold version
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: temurin
+      - name: Download stable Bob
+        shell: bash
         run: |
-          TMPVAR=`curl -s http://d.defold.com/${{env.CHANNEL}}/${{env.VERSION_FILENAME}} | jq -r '.sha1'`
-          echo "DEFOLD_VERSION=${TMPVAR}" >> $GITHUB_ENV
-          echo "Found version ${TMPVAR}"
-
-      - name: Download bob.jar
-        run: |
-          wget -q http://d.defold.com/archive/${{env.CHANNEL}}/${{env.DEFOLD_VERSION}}/bob/bob.jar
+          DEFOLD_SHA=$(curl -fsSL "https://d.defold.com/${CHANNEL}/info.json" | jq -er '.sha1')
+          curl -fsSL "https://d.defold.com/archive/${CHANNEL}/${DEFOLD_SHA}/bob/bob.jar" -o bob.jar
           java -jar bob.jar --version
-
-      - name: Resolve libraries
-        run: java -jar bob.jar resolve --email a@b.com --auth 123456
-      - name: Build
-        run: java -jar bob.jar --platform=${{ matrix.platform }} build --archive --build-server=${{env.BUILD_SERVER}}
-      - name: Bundle
-        run: java -jar bob.jar --platform=${{ matrix.platform }} bundle
-
-  # macOS is not technically needed for building, but we want to test bundling as well, since we're also testing the manifest merging
-  build_with_bob_macos:
-    strategy:
-      matrix:
-        platform: [arm64-ios, x86_64-darwin]
-    runs-on: macOS-latest
-
-    name: Build
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v3
-        with: { java-version: '17.0.5+8', distribution: 'temurin'}
-
-      - name: Get Defold version
-        run: |
-          TMPVAR=`curl -s http://d.defold.com/${{env.CHANNEL}}/${{env.VERSION_FILENAME}} | jq -r '.sha1'`
-          echo "DEFOLD_VERSION=${TMPVAR}" >> $GITHUB_ENV
-          echo "Found version ${TMPVAR}"
-
-      - name: Download bob.jar
-        run: |
-          wget -q http://d.defold.com/archive/${{env.CHANNEL}}/${{env.DEFOLD_VERSION}}/bob/bob.jar
-          java -jar bob.jar --version
-
-      - name: Resolve libraries
-        run: java -jar bob.jar resolve --email a@b.com --auth 123456
-      - name: Build
-        run: java -jar bob.jar --platform=${{ matrix.platform }} build --archive --build-server=${{env.BUILD_SERVER}}
-      - name: Bundle
-        run: java -jar bob.jar --platform=${{ matrix.platform }} bundle
+      - name: Build and bundle without credentials
+        run: >-
+          java -jar bob.jar
+          --platform=${{ matrix.platform }}
+          --architectures=${{ matrix.architectures }}
+          --build-server=${{ env.BUILD_SERVER }}
+          --variant=debug --archive
+          resolve build bundle
