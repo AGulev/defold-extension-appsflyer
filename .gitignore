@@ -10,3 +10,4 @@ builtins
 .internal
 .idea
 debug.keystore*
+/tests/credentials.settings

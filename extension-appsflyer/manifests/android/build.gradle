@@ -2,7 +2,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    //make sure to use the latest SDK version: https://mvnrepository.com/artifact/com.appsflyer/af-android-sdk
-	implementation 'com.appsflyer:af-android-sdk:6.12.2'
-	implementation 'com.android.installreferrer:installreferrer:2.2'
+    // https://dev.appsflyer.com/hc/docs/migrate-android-sdk-to-v7
+    implementation 'com.appsflyer:af-android-sdk:7.0.1'
+    implementation 'com.android.installreferrer:installreferrer:2.2'
 }

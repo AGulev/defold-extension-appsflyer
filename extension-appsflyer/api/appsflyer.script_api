@@ -1,66 +1,389 @@
 - name: appsflyer
   type: table
-  desc: Functions and constants for interacting with mnu APIs
-
+  desc: >-
+    Functions and constants for [AppsFlyer](https://www.appsflyer.com/) install attribution, consent
+    signals, customer IDs and in-app events on Android and iOS. The module is available only on these
+    platforms. Configure appsflyer.key in game.project and, on iOS, the numeric appsflyer.apple_app_id
+    without the id prefix. The SDK initializes during app startup; Lua controls when session delivery
+    starts.
   members:
+    - name: start_sdk
+      type: function
+      desc: >-
+        Enables session delivery once SDK 7 reports readiness. Call after registering a callback and setting
+        the customer ID, consent and other pre-start options. Later foreground sessions start automatically.
+        Repeated calls do not duplicate a session in the same foreground cycle. Raises a Lua error if
+        required configuration is missing. After stop_sdk(true), call stop_sdk(false) before start_sdk();
+        starting alone does not clear the stopped flag. Resumption waits for native readiness. See the
+        [Android](https://dev.appsflyer.com/hc/docs/migrate-android-sdk-to-v7) and
+        [iOS](https://dev.appsflyer.com/hc/docs/migrate-ios-sdk-to-v7) migration guides.
+      examples:
+        - desc: |-
+            ```lua
+            function init(self)
+                if not appsflyer then return end
+                appsflyer.set_callback(function(self, message_id, message)
+                    if message_id == appsflyer.START_SUCCESS then
+                        print("Session delivered")
+                    elseif message.error then
+                        print(message.code, message.error)
+                    end
+                end)
+                appsflyer.set_customer_user_id("your_customer_id")
+                -- Apply the user's consent choices before starting.
+                appsflyer.start_sdk()
+            end
+            ```
+    - name: set_callback
+      type: function
+      desc: >-
+        Registers the single SDK callback, replacing the previous one. Pass nil to remove it, including in
+        the script's final function. It is safe to replace or remove the callback from inside a callback.
+        Native responses are queued and delivered during Defold's update on the Lua thread. Register before
+        start_sdk.
+      parameters:
+        - name: callback
+          type: function
+          desc: >-
+            Callback function, or nil to remove it.
+          parameters:
+            - name: self
+              type: object
+              desc: >-
+                The script instance that registered the callback.
+            - name: message_id
+              type: number
+              desc: >-
+                One of appsflyer.CONVERSION_DATA_SUCCESS, appsflyer.CONVERSION_DATA_FAIL, appsflyer.START_SUCCESS,
+                appsflyer.START_FAIL, appsflyer.EVENT_SUCCESS or appsflyer.EVENT_FAIL. Use named constants instead
+                of numeric literals.
+            - name: message
+              type: table
+              desc: >-
+                An empty table for START_SUCCESS, the native attribution dictionary for CONVERSION_DATA_SUCCESS, or
+                the fields below for event/error messages. Conversion data arrives independently of request
+                acknowledgments.
+              fields:
+                - name: event_name
+                  type: string
+                  optional: true
+                  desc: >-
+                    Event name for EVENT_SUCCESS and EVENT_FAIL. Same-name events have no separate request ID.
+                - name: error
+                  type: string
+                  optional: true
+                  desc: >-
+                    Native error description for START_FAIL, EVENT_FAIL and CONVERSION_DATA_FAIL.
+                - name: code
+                  type: number
+                  optional: true
+                  desc: >-
+                    Native error code on failure. Codes differ by platform; Android conversion failures use 0.
+                - name: af_status
+                  type: string
+                  optional: true
+                  desc: >-
+                    Attribution status when supplied by CONVERSION_DATA_SUCCESS, such as Organic or Non-organic.
+                - name: is_first_launch
+                  type: boolean
+                  optional: true
+                  desc: >-
+                    First-launch flag when supplied by CONVERSION_DATA_SUCCESS. Other native fields are preserved.
+      examples:
+        - desc: |-
+            ```lua
+            local function on_appsflyer(self, message_id, message)
+                if message_id == appsflyer.EVENT_SUCCESS then
+                    print("Event delivered:", message.event_name)
+                elseif message_id == appsflyer.CONVERSION_DATA_SUCCESS then
+                    pprint(message)
+                elseif message.error then
+                    print("AppsFlyer error:", message.code, message.error)
+                end
+            end
 
-#*****************************************************************************************************
+            function init(self)
+                if appsflyer then appsflyer.set_callback(on_appsflyer) end
+            end
 
-  - name: start_sdk
-    type: function
-
-#*****************************************************************************************************
-
-  - name: set_callback
-    type: function
-
-    parameters:
-      - name: callback
-        type: function
-
-#*****************************************************************************************************
-
-  - name: set_debug_log
-    type: function
-
-    parameters:
-      - name: is_debug
-        type: boolean
-
-#*****************************************************************************************************
-
-  - name: set_customer_user_id
-    type: function
-
-    parameters:
-      - name: user_id
-        type: string
-
-#*****************************************************************************************************
-
-  - name: log_event
-    type: function
-
-    parameters:
-      - name: event_name
-        type: string
-      - name: event_params
-        type: table
-
-#*****************************************************************************************************
-
-  - name: get_appsflyer_uid
-    type: function
-
-    return:
-      - name: uid
-        type: string
-        desc: AppsFlyer's unique device ID
-
-#*****************************************************************************************************
-
-  - name: CONVERSION_DATA_SUCCESS
-    type: number
-
-  - name: CONVERSION_DATA_FAIL
-    type: number
+            function final(self)
+                if appsflyer then appsflyer.set_callback(nil) end
+            end
+            ```
+    - name: set_customer_user_id
+      type: function
+      desc: >-
+        Sets your customer identifier on Android and iOS. Set it on every cold start before start_sdk to
+        associate it with the first session. SDK 7 does not persist the value across process restarts. This
+        is separate from the AppsFlyer installation ID returned by get_appsflyer_uid. Updates apply to
+        future requests. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#setcustomeruserid),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#customeruserid).
+      parameters:
+        - name: user_id
+          type: string
+          desc: >-
+            Your application's customer identifier.
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.set_customer_user_id("your_customer_id")
+            appsflyer.start_sdk()
+            ```
+    - name: get_appsflyer_uid
+      type: function
+      desc: >-
+        Returns the native AppsFlyer installation identifier, or nil if unavailable. It is not your customer
+        ID. Read after initialization, for example in START_SUCCESS. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#getappsflyeruid),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#getappsflyeruid).
+      return:
+        - name: uid
+          type: string
+          desc: >-
+            AppsFlyer installation ID, or nil if unavailable.
+    - name: get_sdk_version
+      type: function
+      desc: >-
+        Returns the loaded native SDK version, including any build information. Available even when
+        credentials are missing. Use it when reporting integration issues. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#getsdkversion),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#getsdkversion).
+      return:
+        - name: version
+          type: string
+          desc: >-
+            Native SDK version string; it may contain a prefix or build suffix.
+      examples:
+        - desc: |-
+            ```lua
+            print(appsflyer.get_sdk_version())
+            ```
+    - name: set_debug_log
+      type: function
+      desc: >-
+        Enables or disables native SDK diagnostics. Can be set before start_sdk; appsflyer.is_debug in
+        game.project also controls startup logging. Disable for release builds. Native logs may contain the
+        Dev Key and identifiers. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#setdebuglog),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#isdebug).
+      parameters:
+        - name: is_debug
+          type: boolean
+          desc: >-
+            True to enable debug logging, false to disable it.
+    - name: log_event
+      type: function
+      desc: >-
+        Logs an in-app event after start_sdk. EVENT_SUCCESS or EVENT_FAIL reports the native request result.
+        Missing initialization raises a Lua error. Parameters must be a flat table with string keys and
+        string/number values; numbers retain this extension's existing string serialization. Nested tables
+        and booleans are rejected. An af_purchase event records revenue but does not validate a purchase
+        receipt. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#logevent),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#logevent).
+      parameters:
+        - name: event_name
+          type: string
+          desc: >-
+            Event name, such as af_level_achieved, af_purchase or an application-defined name.
+        - name: event_params
+          type: table
+          optional: true
+          desc: >-
+            String-keyed table of string/number values; may be omitted or nil for an empty event.
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.log_event("af_level_achieved", { af_level = 2, af_score = 100 })
+            appsflyer.log_event("af_purchase", {
+                af_currency = "USD",
+                af_content_id = "item_id",
+                af_revenue = 1.99,
+            })
+            ```
+    - name: set_consent_data
+      type: function
+      desc: >-
+        Supplies the user's explicit consent signals to the native SDK. Set the current choices on every
+        cold start before start_sdk, and update them when they change. All four fields are optional
+        booleans: omitted/nil means unspecified, whereas false is an explicit negative choice. Unknown
+        fields and non-boolean values raise Lua errors. This function neither displays a consent dialog nor
+        stops SDK delivery. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#setconsentdata),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#setconsentdata).
+      parameters:
+        - name: consent
+          type: table
+          desc: >-
+            Consent choices. An empty table forwards all four signals as unspecified.
+          fields:
+            - name: is_user_subject_to_gdpr
+              type: boolean
+              optional: true
+              desc: >-
+                Whether the user is subject to GDPR.
+            - name: has_consent_for_data_usage
+              type: boolean
+              optional: true
+              desc: >-
+                Whether the user consented to data usage.
+            - name: has_consent_for_ads_personalization
+              type: boolean
+              optional: true
+              desc: >-
+                Whether the user consented to personalized advertising.
+            - name: has_consent_for_ad_storage
+              type: boolean
+              optional: true
+              desc: >-
+                Whether the user consented to advertising storage/access on the device.
+      examples:
+        - desc: |-
+            ```lua
+            -- Populate choices from your consent flow.
+            local function apply_consent(choices)
+                appsflyer.set_consent_data({
+                    is_user_subject_to_gdpr = choices.gdpr,
+                    has_consent_for_data_usage = choices.data_usage,
+                    has_consent_for_ads_personalization = choices.personalized_ads,
+                    has_consent_for_ad_storage = choices.ad_storage,
+                })
+                appsflyer.start_sdk()
+            end
+            ```
+    - name: enable_tcf_data_collection
+      type: function
+      desc: >-
+        Enables collection of TCF data stored by a compatible consent management platform. Configure before
+        start_sdk on each cold start. Does not show a consent dialog or create a TCF string. Explicit
+        signals supplied through set_consent_data take precedence. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#enabletcfdatacollection),
+         [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#enabletcfdatacollection).
+      parameters:
+        - name: enabled
+          type: boolean
+          desc: >-
+            True to enable TCF collection, false to disable it.
+      examples:
+        - desc: |-
+            ```lua
+            -- After your CMP has stored the user's TCF choices:
+            appsflyer.enable_tcf_data_collection(true)
+            appsflyer.start_sdk()
+            ```
+    - name: anonymize_user
+      type: function
+      desc: >-
+        Enables or disables AppsFlyer's anonymization mode. Apply before start_sdk to affect the first
+        session. Requests continue; use stop_sdk(true) to stop delivery. Changing this flag does not rewrite
+        previously delivered data. Reapply your intended configuration on each cold start. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#anonymizeuser),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#anonymizeuser).
+      parameters:
+        - name: enabled
+          type: boolean
+          desc: >-
+            True to enable SDK anonymization, false to disable it.
+    - name: stop_sdk
+      type: function
+      desc: >-
+        Sets the native SDK stopped flag. Passing true also revokes the extension's automatic
+        foreground-session gate. To resume, call stop_sdk(false), then start_sdk(); a session is sent when
+        native session readiness permits it. Passing false alone does not re-enable a gate revoked by
+        stop_sdk(true). Calls are queued on the platform UI/main thread; is_stopped may briefly return the
+        previous value until the call has been applied. Already delivered data is unaffected. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#stop),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#isstopped).
+      parameters:
+        - name: stopped
+          type: boolean
+          desc: >-
+            True to stop SDK delivery, false to clear the native stopped flag.
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.stop_sdk(true)
+            -- Later, when the application intends to resume:
+            appsflyer.stop_sdk(false)
+            appsflyer.start_sdk()
+            ```
+    - name: is_stopped
+      type: function
+      desc: >-
+        Reads the native SDK stopped flag. This does not indicate whether start_sdk was called, whether the
+        SDK is session-ready, or whether a request succeeded. A queued stop_sdk call can take effect after
+        this getter returns. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#isstopped),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#isstopped).
+      return:
+        - name: stopped
+          type: boolean
+          desc: >-
+            True if the native SDK is stopped, false otherwise.
+    - name: set_currency_code
+      type: function
+      desc: >-
+        Sets the default revenue currency. Use a three-letter uppercase ISO 4217 code; other formats raise a
+        Lua error. Apply before start_sdk and reapply on each cold start. An event's af_currency parameter
+        can specify its own currency. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#setcurrencycode),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#currencycode).
+      parameters:
+        - name: currency
+          type: string
+          desc: >-
+            Currency code, for example USD, EUR or SEK. Format is checked; membership in ISO 4217 is not.
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.set_currency_code("EUR")
+            ```
+    - name: set_sharing_filter_for_partners
+      type: function
+      desc: >-
+        Excludes partners from data sharing. Apply before start_sdk to affect the first session and reapply
+        on each cold start. Use exact AppsFlyer partner IDs, not display names. Each ID must contain 1-45
+        ASCII letters, digits or underscores. The special ID "all" excludes every partner. An empty table
+        resets the filter. AppsFlyer continues receiving events. Malformed or sparse arrays raise a Lua
+        error. Original docs:
+        [Android](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib#setsharingfilterforpartners),
+        [iOS](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib#setsharingfilterforpartners).
+      parameters:
+        - name: partners
+          type: table
+          desc: >-
+            Contiguous array of partner ID strings, starting at index 1, or an empty table to reset.
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.set_sharing_filter_for_partners({ "examplePartner1_int" })
+            appsflyer.set_sharing_filter_for_partners({ "all" })
+            appsflyer.set_sharing_filter_for_partners({}) -- Reset.
+            ```
+    - name: CONVERSION_DATA_SUCCESS
+      type: number
+      desc: >-
+        Conversion data received. The message is the native attribution table; fields depend on the
+        attribution result.
+    - name: CONVERSION_DATA_FAIL
+      type: number
+      desc: >-
+        Conversion request failed. The message contains error and code; Android conversion errors use code
+        0.
+    - name: START_SUCCESS
+      type: number
+      desc: >-
+        Native SDK reports successful session delivery. The message is an empty table.
+    - name: START_FAIL
+      type: number
+      desc: >-
+        Native SDK reports failed session delivery. The message contains error and code.
+    - name: EVENT_SUCCESS
+      type: number
+      desc: >-
+        Native SDK reports successful event delivery. The message contains event_name.
+    - name: EVENT_FAIL
+      type: number
+      desc: >-
+        Native SDK reports failed event delivery. The message contains event_name, error and code.

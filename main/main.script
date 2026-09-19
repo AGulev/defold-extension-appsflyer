@@ -1,20 +1,38 @@
 local function appsflyer_callback(self, message_id, message)
     if message_id == appsflyer.CONVERSION_DATA_SUCCESS then
-        print("Conversion data loaded:");
-        pprint(message);
+        print("Conversion data loaded:")
+        pprint(message)
     elseif message_id == appsflyer.CONVERSION_DATA_FAIL then
-        print("Conversion data loading failed:", message.error);
+        print("Conversion data loading failed:", message.error)
+    elseif message_id == appsflyer.START_SUCCESS then
+        print("AppsFlyer session delivered")
+    elseif message_id == appsflyer.EVENT_SUCCESS then
+        print("AppsFlyer event delivered:", message.event_name)
+    elseif message_id == appsflyer.START_FAIL or message_id == appsflyer.EVENT_FAIL then
+        print("AppsFlyer request failed:", message.code, message.error)
     end
 end
 
 function init(self)
-    if appsflyer then
-        appsflyer.set_debug_log(true)
-        appsflyer.set_customer_user_id("test_user_id")
-        appsflyer.set_callback(appsflyer_callback)
-        appsflyer.start_sdk()
-        timer.delay(5, false, function()
-            appsflyer.log_event("test_event", { one = "one", two = 2 })
-        end)
+    if not appsflyer then return end
+    if sys.get_config_string("appsflyer.key", "") == "" then
+        print("Configure appsflyer.key to run this example; see README.md.")
+        return
     end
+    if sys.get_sys_info().system_name == "iPhone OS" and sys.get_config_string("appsflyer.apple_app_id", "") == "" then
+        print("Configure appsflyer.apple_app_id to run this example on iOS.")
+        return
+    end
+    print("AppsFlyer SDK:", appsflyer.get_sdk_version())
+    appsflyer.set_customer_user_id("test_user_id")
+    appsflyer.set_callback(appsflyer_callback)
+    -- Call after any required consent/ATT flow has completed.
+    appsflyer.start_sdk()
+    timer.delay(5, false, function()
+        appsflyer.log_event("test_event", { one = "one", two = 2 })
+    end)
+end
+
+function final(self)
+    if appsflyer then appsflyer.set_callback(nil) end
 end

@@ -1,0 +1,5 @@
+[bootstrap]
+main_collection = /tests/smoke.collectionc
+
+[appsflyer]
+is_debug = 1

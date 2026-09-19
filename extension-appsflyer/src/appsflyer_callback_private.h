@@ -9,7 +9,11 @@ namespace dmAppsflyer {
 enum MessageId
 {
     CONVERSION_DATA_SUCCESS = 1,
-    CONVERSION_DATA_FAIL = 2
+    CONVERSION_DATA_FAIL = 2,
+    START_SUCCESS = 3,
+    START_FAIL = 4,
+    EVENT_SUCCESS = 5,
+    EVENT_FAIL = 6
 };
 
 struct CallbackData
@@ -19,6 +23,7 @@ struct CallbackData
 };
 
 void SetLuaCallback(lua_State* L, int pos);
+void ClearLuaCallback();
 void UpdateCallback();
 void InitializeCallback();
 void FinalizeCallback();
