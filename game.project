@@ -7,7 +7,7 @@ main_collection = /main/main.collectionc
 
 [library]
 include_dirs = extension-appsflyer
-defold_min_version = 1.13.0
+defold_min_version = 1.14.0
 
 [appsflyer]
 key = 

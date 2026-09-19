@@ -8,6 +8,9 @@ import com.appsflyer.share.AppsFlyerConversionListener;
 import com.appsflyer.share.AppsFlyerConsent;
 import com.appsflyer.share.SessionReadyListener;
 import com.appsflyer.share.attribution.AppsFlyerRequestListener;
+import com.appsflyer.share.deeplink.DeepLink;
+import com.appsflyer.share.deeplink.DeepLinkListener;
+import com.appsflyer.share.deeplink.DeepLinkResult;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,6 +25,7 @@ public class AppsflyerJNI {
     private static final int START_FAIL = 4;
     private static final int EVENT_SUCCESS = 5;
     private static final int EVENT_FAIL = 6;
+    private static final int DEEP_LINK_RESULT = 7;
 
     public static native void appsflyerAddToQueue(int msg, String json);
 
@@ -77,6 +81,25 @@ public class AppsflyerJNI {
             @Override
             public void run() {
                 AppsFlyerLib sdk = AppsFlyerLib.getInstance();
+                sdk.subscribeForDeepLink(new DeepLinkListener() {
+                    @Override
+                    public void onDeepLinking(DeepLinkResult result) {
+                        try {
+                            JSONObject data = new JSONObject();
+                            data.put("status", result.getStatus().name());
+                            DeepLink link = result.getDeepLink();
+                            if (result.getStatus() == DeepLinkResult.Status.FOUND && link != null) {
+                                data.put("deep_link", link.getClickEvent());
+                                data.put("is_deferred", Boolean.TRUE.equals(link.isDeferred()));
+                            } else if (result.getStatus() == DeepLinkResult.Status.ERROR) {
+                                data.put("error", String.valueOf(result.getError()));
+                            }
+                            appsflyerAddToQueue(DEEP_LINK_RESULT, data.toString());
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Unable to encode deep link result", e);
+                        }
+                    }
+                });
                 // Defold initializes extensions after Activity.onResume. Passing the
                 // Activity lets AppsFlyer recognize that first foreground session.
                 sdk.init(key, new AppsFlyerConversionListener() {

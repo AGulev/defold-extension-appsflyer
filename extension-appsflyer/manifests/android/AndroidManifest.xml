@@ -4,6 +4,16 @@
     <uses-sdk android:minSdkVersion="{{android.minimum_sdk_version}}"
               android:targetSdkVersion="{{android.target_sdk_version}}"/>
     <application>
+        {{#appsflyer.uri_scheme}}
+        <activity android:name="com.dynamo.android.DefoldActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="{{appsflyer.uri_scheme}}"/>
+            </intent-filter>
+        </activity>
+        {{/appsflyer.uri_scheme}}
         {{#appsflyer.android_channel}}
         <meta-data android:name="CHANNEL" android:value="{{appsflyer.android_channel}}"/>
         {{/appsflyer.android_channel}}

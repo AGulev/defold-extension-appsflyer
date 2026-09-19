@@ -17,7 +17,7 @@ SDK 7 changes the session lifecycle: initialization and session delivery are sep
 
 - Android imports the SDK 7 `share` callback interfaces and calls the new `start(listener)` overload. The conversion listener now implements only its supported success/failure methods.
 - Android passes the current Activity to `init`. Defold initializes extensions after the Activity has resumed; passing only the application context missed first-launch readiness in the emulator. The Activity overload handles that existing foreground state. Launcher intent data is also collected before start.
-- The removed legacy app-open-attribution callbacks are not replaced with a Lua UDL binding in this upgrade. The old iOS implementation emitted an undocumented numeric message `3`; that number now belongs to the documented `START_SUCCESS` callback. Use named constants, and see the deep-linking gap below.
+- The old iOS implementation emitted an undocumented app-open-attribution message `3`; that number now belongs to the documented `START_SUCCESS` callback. Use named constants. Deep-link results now use `DEEP_LINK_RESULT` through the native UDL delegates on both platforms.
 - iOS uses `initWithDevKey:appleAppId:` and retains its weak SDK delegate. The removed iAd framework dependency is gone. Launch options and buffered URL/universal-link arguments survive until SDK initialization.
 - SDK mutations and session coordination run on the Android UI thread or iOS main thread. Native asynchronous responses are queued for Lua's update thread.
 - Lua receives session/event success and failure callbacks, plus `get_sdk_version()`. Conversion failures on iOS are now forwarded.
@@ -28,20 +28,20 @@ SDK 7 changes the session lifecycle: initialization and session delivery are sep
 
 The [Android installation guide](https://dev.appsflyer.com/hc/docs/install-android-sdk-7) requires API 21+, Kotlin 2+ when using Kotlin, and an explicit Play Install Referrer dependency. This extension includes Install Referrer 2.2. Extra store referrer modules and optional Google advertising-ID/AppSet libraries remain app-specific dependencies. The standalone smoke app does not add the optional Google Play services libraries; AppsFlyer still obtained an advertising ID through its fallback path in the emulator.
 
-AppsFlyer 7.0.2 supports iOS 12+, per its podspec. Defold may impose a higher minimum; the tested 1.13.1 bundles specify iOS 15. Builds and tests use current Extender and Java 25 for Bob.
+AppsFlyer 7.0.2 supports iOS 12+, per its podspec. Defold may impose a higher minimum; Defold 1.14.0 specifies iOS 15. The extension now requires Defold 1.14.0 for its scene-delegate API. Development builds use Bob from [Defold PR #13256](https://github.com/defold/defold/pull/13256), `build-stage.defold.com`, and Java 25.
 
 ## Lua API coverage
 
 **Customer ID was already available** as `appsflyer.set_customer_user_id(string)` on both platforms. The sample and API documentation now explain its required placement before the first session. `get_appsflyer_uid()` was also already bound; it returns the AppsFlyer installation identifier, not your customer ID.
 
-The complete exposed surface is 14 functions, documented in the [manual](index.md) and [editor API reference](../extension-appsflyer/api/appsflyer.script_api). The eight added functions are `get_sdk_version`, `set_consent_data`, `enable_tcf_data_collection`, `anonymize_user`, `stop_sdk`, `is_stopped`, `set_currency_code`, and `set_sharing_filter_for_partners`. Existing customer-ID support is retained. Four new constants report session/event success and failure.
+The complete exposed surface is 14 functions, documented in the [manual](index.md) and [editor API reference](../extension-appsflyer/api/appsflyer.script_api). The eight added functions are `get_sdk_version`, `set_consent_data`, `enable_tcf_data_collection`, `anonymize_user`, `stop_sdk`, `is_stopped`, `set_currency_code`, and `set_sharing_filter_for_partners`. Existing customer-ID support is retained. Four constants report session/event success and failure; `DEEP_LINK_RESULT` reports UDL resolution. iOS cold-start and warm links use Defold scene observers.
 
 The following gaps were checked against the shipped Android 7.0.1 `AppsFlyerLib` public methods and iOS 7.0.2 public headers, alongside the [Android API reference](https://dev.appsflyer.com/hc/docs/android-sdk-reference-appsflyerlib) and [iOS API reference](https://dev.appsflyer.com/hc/docs/ios-sdk-reference-appsflyerlib). Some reference examples still show SDK 6 initialization; the SDK 7 migration guides and shipped headers take precedence for changed signatures.
 
 | Missing Lua capability | Native APIs / examples | Consequence |
 | --- | --- | --- |
 | Identifier/network controls | `setDisableAdvertisingIdentifiers`, `setDisableNetworkData`, platform-specific ID controls | Per-app privacy configuration needs native integration or supported SDK configuration files. |
-| Unified Deep Linking / OneLink | Android `subscribeForDeepLink`, iOS `deepLinkDelegate`, OneLink domains, link generation and push deep links | There is no Lua UDL result callback. Existing iOS URL forwarding alone is insufficient for gameplay routing. |
+| Advanced OneLink configuration | Custom OneLink domains, link generation and push deep links | UDL results are exposed through `DEEP_LINK_RESULT`, but these additional configuration APIs remain unbound. |
 | Dedicated ad revenue | `logAdRevenue`, mediation/revenue data objects | Generic events cannot express the full dedicated ad-revenue API. |
 | Purchase validation | `validateAndLogInAppPurchase` and purchase connectors | `af_purchase` records an event but does not validate a transaction. |
 | Rich event values | Native maps/dictionaries support richer values | Lua currently supports only flat string/number values, and serializes numbers as strings; nested items, booleans and arrays are absent. |
@@ -50,7 +50,7 @@ The following gaps were checked against the shipped Android 7.0.1 `AppsFlyerLib`
 | Uninstall attribution | Android uninstall-token updates; iOS device-token registration | Push registration must be connected separately. |
 | Advanced platform configuration | Session interval, host, store/preinstall data, iOS ATT/SKAN controls | These features are outside the current binding. ATT prompting itself belongs to the app's ATT integration. |
 
-Suggested order for future bindings: UDL callbacks; typed/nested event values; ad revenue and purchase validation. Add other APIs when required by a concrete app integration. This upgrade does not claim full SDK parity.
+Suggested order for future bindings: typed/nested event values; ad revenue and purchase validation. Add other APIs when required by a concrete app integration. This upgrade does not claim full SDK parity.
 
 ## Validation
 

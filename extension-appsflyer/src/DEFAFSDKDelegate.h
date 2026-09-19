@@ -12,7 +12,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface DEFAFSDKDelegate : NSObject <AppsFlyerLibDelegate>
+@interface DEFAFSDKDelegate : NSObject <AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 @end
 
 NS_ASSUME_NONNULL_END

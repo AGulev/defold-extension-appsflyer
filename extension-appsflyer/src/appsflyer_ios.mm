@@ -17,9 +17,12 @@ struct AppsflyerAppDelegateRegister
     AppsflyerAppDelegateRegister() {
         m_Delegate = [[AppsflyerAppDelegate alloc] init];
         dmExtension::RegisteriOSUIApplicationDelegate(m_Delegate);
+        // Scene connection options arrive before extension initialization.
+        dmExtension::RegisteriOSUISceneDelegate(m_Delegate);
     }
 
     ~AppsflyerAppDelegateRegister() {
+        dmExtension::UnregisteriOSUISceneDelegate(m_Delegate);
         dmExtension::UnregisteriOSUIApplicationDelegate(m_Delegate);
         [m_Delegate release];
     }
@@ -76,6 +79,7 @@ void Finalize_Ext()
         g_sessionReady = false;
         [[AppsFlyerLib shared] unregisterSessionReadyListener];
         [AppsFlyerLib shared].delegate = nil;
+        [AppsFlyerLib shared].deepLinkDelegate = nil;
         [AppsFlyerAttribution shared].isBridgeReady = NO;
         [g_sdkDelegate release];
         g_sdkDelegate = nil;
@@ -89,11 +93,11 @@ void InitializeSDK(const char* key, const char* appleAppID)
     OnMainThread(^{
         g_sdkDelegate = [[DEFAFSDKDelegate alloc] init];
         [AppsFlyerLib shared].delegate = g_sdkDelegate;
+        [AppsFlyerLib shared].deepLinkDelegate = g_sdkDelegate;
         [[AppsFlyerLib shared] initWithDevKey:devKey appleAppId:appID];
         [[AppsFlyerLib shared] handleLaunchOptions:[AppsFlyerAttribution shared].launchOptions];
         [AppsFlyerAttribution shared].launchOptions = nil;
         [AppsFlyerAttribution shared].isBridgeReady = YES;
-        [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:[AppsFlyerAttribution shared]];
         [[AppsFlyerLib shared] registerSessionReadyListener:^{
             g_sessionReady = true;
             StartIfReady();

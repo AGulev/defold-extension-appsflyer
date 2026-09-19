@@ -1,80 +1,69 @@
 #if defined(DM_PLATFORM_IOS)
-#import <Foundation/Foundation.h>
 #import "AppsFlyerAttribution.h"
 
-@implementation AppsFlyerAttribution
+@interface AppsFlyerAttribution ()
+@property (nonatomic, retain) NSMutableArray* pendingHandlers;
+@end
 
-+ (id)shared {
-    static AppsFlyerAttribution *shared = nil;
+@implementation AppsFlyerAttribution
+@synthesize isBridgeReady = _isBridgeReady;
+
++ (AppsFlyerAttribution*)shared {
+    static AppsFlyerAttribution* shared = nil;
     static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        shared = [[self alloc] init];
-    });
+    dispatch_once(&onceToken, ^{ shared = [[self alloc] init]; });
     return shared;
 }
 
 - (id)init {
-    if (self = [super init]) {
-        self.options = nil;
-        self.restorationHandler = nil;
-        self.url = nil;
-        self.userActivity = nil;
-        self.annotation = nil;
-        self.sourceApplication = nil;
-        self.isBridgeReady = NO;
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(receiveBridgeReadyNotification:)
-                                                     name:AF_BRIDGE_SET
-                                                   object:nil];
-  }
-  return self;
+    if ((self = [super init]))
+        self.pendingHandlers = [NSMutableArray array];
+    return self;
 }
 
-- (void) continueUserActivity: (NSUserActivity*_Nullable) userActivity restorationHandler: (void (^_Nullable)(NSArray * _Nullable))restorationHandler{
-    if(self.isBridgeReady == YES){
+- (void)dealloc {
+    [_launchOptions release];
+    [_pendingHandlers release];
+    [super dealloc];
+}
+
+- (void)setIsBridgeReady:(BOOL)ready {
+    _isBridgeReady = ready;
+    // All scene/SDK bridge operations run on the main thread. Snapshot before
+    // invoking the SDK so a callback cannot change the array being enumerated.
+    NSArray* pending = [self.pendingHandlers copy];
+    [self.pendingHandlers removeAllObjects];
+    if (ready) {
+        for (dispatch_block_t handler in pending)
+            handler();
+    }
+    [pending release];
+}
+
+- (void)performWhenReady:(dispatch_block_t)handler {
+    if (self.isBridgeReady) {
+        handler();
+    } else {
+        // Copy the block to retain the URL/activity and any restoration handler.
+        dispatch_block_t pending = [handler copy];
+        [self.pendingHandlers addObject:pending];
+        [pending release];
+    }
+}
+
+- (void)continueUserActivity:(NSUserActivity*)userActivity restorationHandler:(void (^)(NSArray*))restorationHandler {
+    if (!userActivity) return;
+    [self performWhenReady:^{
         [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
-    }else{
-        [AppsFlyerAttribution shared].userActivity = userActivity;
-        [AppsFlyerAttribution shared].restorationHandler = restorationHandler;
-    }
+    }];
 }
 
-- (void) handleOpenUrl:(NSURL *)url options:(NSDictionary *)options{
-    if(self.isBridgeReady == YES){
-        [[AppsFlyerLib shared] handleOpenUrl:url options:options];
-    }else{
-        [AppsFlyerAttribution shared].url = url;
-        [AppsFlyerAttribution shared].options = options;
-    }
+- (void)handleOpenUrl:(NSURL*)url options:(NSDictionary*)options {
+    if (!url) return;
+    [self performWhenReady:^{
+        [[AppsFlyerLib shared] handleOpenUrl:url options:options ?: @{}];
+    }];
 }
 
-- (void) handleOpenUrl:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation{
-    if(self.isBridgeReady == YES){
-        [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
-    }else{
-        [AppsFlyerAttribution shared].url = url;
-        [AppsFlyerAttribution shared].sourceApplication = sourceApplication;
-        [AppsFlyerAttribution shared].annotation = annotation;
-    }
-
-}
-
-- (void) receiveBridgeReadyNotification:(NSNotification *) notification
-{
-    if(self.url && self.sourceApplication){
-        [[AppsFlyerLib shared] handleOpenURL:self.url sourceApplication:self.sourceApplication withAnnotation:self.annotation];
-        self.url = nil;
-        self.sourceApplication = nil;
-        self.annotation = nil;
-    }else if(self.options && self.url){
-        [[AppsFlyerLib shared] handleOpenUrl:self.url options:self.options];
-        self.options = nil;
-        self.url = nil;
-    }else if(self.userActivity){
-        [[AppsFlyerLib shared] continueUserActivity:self.userActivity restorationHandler:self.restorationHandler];
-        self.userActivity = nil;
-        self.restorationHandler = nil;
-    }
-}
 @end
-#endif // platform
+#endif

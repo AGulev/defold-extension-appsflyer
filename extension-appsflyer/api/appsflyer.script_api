@@ -2,10 +2,10 @@
   type: table
   desc: >-
     Functions and constants for [AppsFlyer](https://www.appsflyer.com/) install attribution, consent
-    signals, customer IDs and in-app events on Android and iOS. The module is available only on these
+    signals, customer IDs, deep links and in-app events on Android and iOS. The module is available only on these
     platforms. Configure appsflyer.key in game.project and, on iOS, the numeric appsflyer.apple_app_id
     without the id prefix. The SDK initializes during app startup; Lua controls when session delivery
-    starts.
+    starts. Requires Defold 1.14.0 with iOS scene-delegate support.
   members:
     - name: start_sdk
       type: function
@@ -40,7 +40,7 @@
         Registers the single SDK callback, replacing the previous one. Pass nil to remove it, including in
         the script's final function. It is safe to replace or remove the callback from inside a callback.
         Native responses are queued and delivered during Defold's update on the Lua thread. Register before
-        start_sdk.
+        start_sdk. Deep-link results can arrive before session delivery and are queued until a callback is set.
       parameters:
         - name: callback
           type: function
@@ -55,13 +55,13 @@
               type: number
               desc: >-
                 One of appsflyer.CONVERSION_DATA_SUCCESS, appsflyer.CONVERSION_DATA_FAIL, appsflyer.START_SUCCESS,
-                appsflyer.START_FAIL, appsflyer.EVENT_SUCCESS or appsflyer.EVENT_FAIL. Use named constants instead
+                appsflyer.START_FAIL, appsflyer.EVENT_SUCCESS, appsflyer.EVENT_FAIL or appsflyer.DEEP_LINK_RESULT. Use named constants instead
                 of numeric literals.
             - name: message
               type: table
               desc: >-
                 An empty table for START_SUCCESS, the native attribution dictionary for CONVERSION_DATA_SUCCESS, or
-                the fields below for event/error messages. Conversion data arrives independently of request
+                the fields below for event/error/deep-link messages. Conversion data arrives independently of request
                 acknowledgments.
               fields:
                 - name: event_name
@@ -73,12 +73,29 @@
                   type: string
                   optional: true
                   desc: >-
-                    Native error description for START_FAIL, EVENT_FAIL and CONVERSION_DATA_FAIL.
+                    Native error description for START_FAIL, EVENT_FAIL, CONVERSION_DATA_FAIL or a DEEP_LINK_RESULT with status ERROR.
                 - name: code
                   type: number
                   optional: true
                   desc: >-
                     Native error code on failure. Codes differ by platform; Android conversion failures use 0.
+                - name: status
+                  type: string
+                  optional: true
+                  desc: >-
+                    DEEP_LINK_RESULT status: FOUND, NOT_FOUND or ERROR.
+                - name: deep_link
+                  type: table
+                  optional: true
+                  desc: >-
+                    Native click-event fields for a FOUND deep link, including deep_link_value and
+                    deep_link_sub1 through deep_link_sub10 when supplied. Other fields depend on attribution
+                    and privacy rules. Absent for NOT_FOUND and ERROR.
+                - name: is_deferred
+                  type: boolean
+                  optional: true
+                  desc: >-
+                    For a FOUND deep link, true indicates post-install resolution and false a direct link.
                 - name: af_status
                   type: string
                   optional: true
@@ -387,3 +404,26 @@
       type: number
       desc: >-
         Native SDK reports failed event delivery. The message contains event_name, error and code.
+    - name: DEEP_LINK_RESULT
+      type: number
+      desc: >-
+        Unified Deep Linking result on Android and iOS. The message contains status (FOUND, NOT_FOUND or
+        ERROR). FOUND includes deep_link (the native click-event table) and is_deferred (boolean); ERROR
+        includes an error string. Results can arrive before start_sdk/session delivery and are queued
+        until a callback is registered. Configure appsflyer.uri_scheme to register a custom URI scheme,
+        or register it in your own manifests. Universal Links/App Links also require platform and OneLink
+        configuration. iOS forwards cold-start connection options and later scene callbacks using Defold
+        1.14.0 scene observers. See the [deep-link guide](https://github.com/AGulev/defold-extension-appsflyer/blob/master/docs/index.md#deep-links).
+      examples:
+        - desc: |-
+            ```lua
+            appsflyer.set_callback(function(self, message_id, message)
+                if message_id == appsflyer.DEEP_LINK_RESULT then
+                    if message.status == "FOUND" then
+                        print(message.deep_link.deep_link_value, message.is_deferred)
+                    elseif message.status == "ERROR" then
+                        print(message.error)
+                    end
+                end
+            end)
+            ```
