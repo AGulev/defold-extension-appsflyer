@@ -9,14 +9,14 @@ Run on 2026-09-19 with Defold 1.13.1 (`574678c7d44be490d874fbed2d0ae6211feec4d9`
 | Test runtime | Pixel 9a AVD, Android 17/API 37.1, ARM64, 16 KB pages | iPhone 16 Pro simulator, iOS 18.6, x86_64 via Rosetta |
 | Missing credentials | Passed: warning and Lua start error | Passed: warning and Lua start error |
 | Invalid Lua event values and new API arguments | Passed | Passed |
-| Consent/filter/currency setters and stop/resume | Passed; request payload checked | Passed through native bridge on invalid-configuration path |
+| Consent/filter/currency setters and stop/resume | Passed; request payload checked | Passed; consent confirmed in dashboard, currency/filter in native SDK configuration |
 | Event rejection while stopped | Passed; one Lua error result | Passed; one Lua error result |
-| Deferred startup and duplicate start calls | Passed; one session callback before backgrounding | Passed with invalid configuration; one session error callback |
+| Deferred startup and duplicate start calls | Passed; one session callback before backgrounding | Passed; one successful session before stop/resume |
 | Callback replacement during delivery | Passed | Passed |
 | Stable AppsFlyer UID returned to Lua | Passed | Passed |
-| Successful server delivery | **Passed**, including dashboard confirmation | **Pending test-app registration** |
-| Customer ID in accepted events | **Confirmed in AppsFlyer Live Event Viewer** | Pending successful delivery |
-| Subsequent foreground session | Passed | Passed on the invalid-configuration path; live success pending |
+| Successful server delivery | **Passed**, including dashboard confirmation | **Passed**, including dashboard confirmation |
+| Customer ID in accepted events | **Confirmed in AppsFlyer Live Event Viewer** | **Confirmed in AppsFlyer Live Event Viewer** |
+| Subsequent foreground session | Passed | Passed; successful callback and dashboard Launch |
 | Invalid-configuration error callbacks | Missing-key path tested | Session, event and conversion errors returned to Lua |
 
 ## Android live evidence
@@ -42,11 +42,34 @@ Backgrounding and reopening the app produced a second `START_SUCCESS`. The outgo
 
 The SDK Information aggregate dashboard initially showed no data; it was not used as evidence of failure. The Live Event Viewer provided direct confirmation of received events.
 
-## iOS status
+## iOS live evidence
 
-The simulator runs the actual Defold extension and smoke collection. Rosetta was installed to run Defold's Intel simulator engine on this Apple Silicon host. Missing-key handling passed. With deliberately invalid configuration, the native SDK reached AppsFlyer and returned HTTP 404, surfaced as `START_FAIL` and `EVENT_FAIL` (native error code 40), plus `CONVERSION_DATA_FAIL` with `App ID is incorrect`. Callback replacement, UID checks, and a subsequent foreground session callback passed on that path. The smoke script correctly reported `RESULT FAIL` because successful delivery was not expected with invalid configuration.
+The registered iOS debug app uses dashboard ID `id111126919`, numeric SDK ID `111126919`, and test bundle ID `io.refold.appsflyer.sdk7test.ios`. The simulator was registered as a test device using that app's IDFV. It runs the actual Defold extension and smoke collection through Rosetta on this Apple Silicon host.
 
-The planned iOS debug app uses dashboard ID `id111126919`, numeric SDK ID `111126919`. It was not registered during this run. Successful iOS event delivery is therefore **not yet verified**; the invalid-configuration test must not be treated as a live-delivery pass.
+The full smoke test passed with the committed SDK/API implementation. AppsFlyer's Live Event Viewer recorded a Launch at **12:43:21**, the in-app event `defold_sdk_smoke` at **12:43:25**, and another Launch after stop/resume at **12:43:34** (Europe/Stockholm). The event details showed SDK version **7.0.2**, customer user ID **`defold_sdk7_smoke`**, event values `one: one` and `two: 2`, and the expected manual consent values.
+
+```text
+AF_SMOKE SDK_VERSION version: 7.0.2 (build 1)
+AF_SMOKE NEW_API_VALIDATION_PASS
+AF_SMOKE INPUT_VALIDATION_PASS
+AF_SMOKE NEW_API_CONFIG_PASS
+AF_SMOKE START_REQUESTED
+AF_SMOKE START_SUCCESS {}
+AF_SMOKE CALLBACK_REPLACEMENT_PASS
+AF_SMOKE UID_OK
+AF_SMOKE CONVERSION_DATA_SUCCESS ... af_status: Organic ...
+AF_SMOKE EVENT_SUCCESS {"event_name":"defold_sdk_smoke"}
+AF_SMOKE DELIVERY_PASS
+AF_SMOKE EVENT_FAIL ... code: 11, event_name: defold_sdk_stopped ...
+AF_SMOKE STOPPED_EVENT_PASS
+AF_SMOKE STOP_RESUME_PASS
+AF_SMOKE START_SUCCESS {}
+AF_SMOKE RESULT PASS session_callbacks 2
+```
+
+Backgrounding the app with the simulator's built-in Settings app and reopening it produced another `START_SUCCESS`. The dashboard recorded that Launch at **12:45:07**. The stopped event produced exactly one error callback and did not appear in the Live Event Viewer.
+
+Missing-key handling also passed. Earlier deliberately invalid configuration returned HTTP 404, surfaced as `START_FAIL` and `EVENT_FAIL` (native error code 40), plus `CONVERSION_DATA_FAIL` with `App ID is incorrect`. Those earlier negative tests correctly reported `RESULT FAIL`; the successful live run above is the delivery evidence.
 
 ## Added API validation
 
@@ -73,7 +96,9 @@ The accepted event request contained these inspected fields (other fields are om
 
 Ad-storage consent was intentionally omitted in Lua and remained absent from the native payload. These are synthetic choices for the test app. The TCF flag was toggled, but actual CMP/TCF-string extraction was not tested. Anonymization was toggled before delivery; a separate anonymized request was not tested. Partner-filter forwarding was checked; downstream partner behavior was not tested.
 
-On iOS the same new API assertions passed, including one stopped-event failure (native code 11) and a new session attempt after resumption. Its session/event requests still returned the expected HTTP 404 with invalid test configuration, so `RESULT FAIL` is the correct delivery result. Successful iOS delivery and payload contents remain unverified.
+On iOS the same new API assertions passed with live credentials, including one stopped-event failure (native code 11) and a successful session after resumption. The accepted event's dashboard details confirmed GDPR/data usage true and ads personalization false, with ad-storage consent absent. Read-only debugger inspection of the running test app confirmed the effective native currency `EUR`, sharing filter `["all"]`, debug enabled, anonymization disabled after its toggle, and stopped state false after resumption. Currency and sharing were checked in native configuration; the iOS Live Event Viewer does not display those fields.
+
+SDK 7.0.2's public `currencyCode` and `isDebug` getters returned legacy defaults during that inspection. Its setters write a separate SDK configuration object; inspecting those effective fields confirmed `EUR` and debug enabled. The extension uses the documented setters, so no integration workaround was needed.
 
 ## Other checks and limits
 
@@ -82,5 +107,6 @@ On iOS the same new API assertions passed, including one stopped-event failure (
 - YAML manifests, API documentation and CI workflow parse successfully. The credential-injection helper compiles, and was exercised for both APK and .app packaging.
 - No actual Dev Key is present in the repository changes. Credentials and raw logs are kept outside the repository under `/private/tmp/appsflyer-upgrade`.
 - These tests do not validate campaign attribution from ad clicks, ATT/IDFA, SKAdNetwork, store purchase validation, or physical-device behavior.
+- Deep-link testing was explicitly deferred. The existing deep-link implementation was left unchanged during this validation follow-up.
 
-See [testing instructions](../tests/README.md) to reproduce or complete the live iOS test.
+See [testing instructions](../tests/README.md) to reproduce the Android and iOS tests.

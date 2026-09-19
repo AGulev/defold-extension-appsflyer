@@ -7,7 +7,7 @@ The smoke collection exercises the actual Lua/C++/Java or Objective-C bridge and
 Install Java 25, Defold 1.13.1 Bob, and the Android SDK and/or Xcode. Native extension builds use Extender and upload source code. Keep `appsflyer.key` blank in the project and build inputs; `inject_credentials.py` inserts it into the completed bundle locally.
 
 1. Register an Android pending/unpublished app whose ID matches your test package.
-2. Register an iOS debug app using AppsFlyer's [debug-app instructions](https://dev.appsflyer.com/hc/docs/integrate-ios-sdk#creating-an-ios-debug-app). The fake numeric ID must have nine digits and begin with `1111`. The dashboard displays an `id` prefix; the SDK setting omits it.
+2. Register an iOS debug app using AppsFlyer's [debug-app instructions](https://dev.appsflyer.com/hc/docs/testing-ios#creating-an-ios-debug-app). The fake numeric ID must have nine digits and begin with `1111`. The dashboard displays an `id` prefix; the SDK setting omits it.
 3. Copy `credentials.settings.example` outside the repository, set the platform's Dev Key and numeric iOS ID, and restrict the file to your user (`chmod 600`). Do not pass this file to Extender.
 4. Put only nonsecret identifiers in a separate `app.settings` file:
 
@@ -102,6 +102,10 @@ With valid credentials, keep the app in the foreground for 40 seconds:
 - `CONVERSION_DATA_SUCCESS` arrives independently and may contain cached attribution on subsequent launches.
 - At 12 seconds the test stops the SDK; an event attempted while stopped must produce one failure (`STOPPED_EVENT_PASS`). At 16 seconds it resumes (`STOP_RESUME_PASS`). A resumed session waits for native readiness; Android may need another foreground cycle.
 
-Background the app for more than five seconds and reopen it to check that another session succeeds. The outgoing session and in-app event should contain customer ID `defold_sdk7_smoke`, currency `EUR`, sharing filter `["all"]`, and manual consent with GDPR/data usage true and ads personalization false. Ad-storage consent is deliberately omitted and must remain absent. These are synthetic choices for this test app. TCF extraction itself requires a CMP and is not covered by toggling its flag. Keep raw debug logs private: the native SDK may print the Dev Key. Do not commit test credentials, signed test bundles or raw logs.
+Keep the simulator app active and dismiss any system dialogs before evaluating timer-based assertions. Background the app for more than five seconds and reopen it to check that another session succeeds. On iOS, temporarily opening the simulator's built-in Settings app and then reopening the test app exercises this without changing any settings.
+
+The outgoing session and in-app event should contain customer ID `defold_sdk7_smoke`, currency `EUR`, sharing filter `["all"]`, and manual consent with GDPR/data usage true and ads personalization false. Ad-storage consent is deliberately omitted and must remain absent. Confirm received sessions/events and their customer ID in AppsFlyer's Live Event Viewer; the aggregate dashboard can lag behind. The viewer also displays manual consent, but does not expose every native configuration field. These are synthetic choices for this test app. TCF extraction itself requires a CMP and is not covered by toggling its flag. Keep raw debug logs private: the native SDK may print the Dev Key. Do not commit test credentials, signed test bundles or raw logs.
 
 For repeated install-attribution testing, [register the emulator/simulator as a test device](https://support.appsflyer.com/hc/en-us/articles/207031996-Registering-test-devices) using a supported identifier before reinstalling. Ad-campaign attribution, ATT/IDFA, SKAN and purchases need their own physical-device/store tests.
+
+Deep-link testing is separate from this smoke test and was deferred for this upgrade.
