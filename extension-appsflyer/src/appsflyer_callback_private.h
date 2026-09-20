@@ -13,7 +13,8 @@ enum MessageId
     START_SUCCESS = 3,
     START_FAIL = 4,
     EVENT_SUCCESS = 5,
-    EVENT_FAIL = 6
+    EVENT_FAIL = 6,
+    DEEP_LINK_RESULT = 7
 };
 
 struct CallbackData

@@ -2,15 +2,15 @@
 
 [![Build Status](https://github.com/AGulev/defold-extension-appsflyer/workflows/Build%20with%20bob/badge.svg)](https://github.com/AGulev/defold-extension-appsflyer/actions)
 
-[AppsFlyer](https://www.appsflyer.com/) native extension for [Defold](https://defold.com/), supporting attribution, events, customer IDs, consent controls and partner-sharing filters on Android and iOS.
+[AppsFlyer](https://www.appsflyer.com/) native extension for [Defold](https://defold.com/), supporting attribution, deep links, events, customer IDs, consent controls and partner-sharing filters on Android and iOS.
 
-Uses **Android SDK 7.0.1** and **iOS SDK 7.0.2**.
+Uses **Android SDK 7.0.1** and **iOS SDK 7.0.2**. Requires **Defold 1.14.0** with the scene-delegate API from [Defold PR #13256](https://github.com/defold/defold/pull/13256).
 
 - [Installation, configuration and Lua API manual](docs/index.md)
 - [Editor API reference](extension-appsflyer/api/appsflyer.script_api)
 - [SDK 7 migration and missing-API audit](docs/sdk7-upgrade.md)
 - [Simulator test instructions](tests/README.md)
 
-Customer ID is available through `appsflyer.set_customer_user_id()`. Set it on each cold start before `appsflyer.start_sdk()`. The module exposes 14 functions; see the manual for consent, stop/resume, currency and sharing controls.
+Customer ID is available through `appsflyer.set_customer_user_id()`. Set it on each cold start before `appsflyer.start_sdk()`. The module exposes 14 functions; see the manual for consent, stop/resume, currency and sharing controls. Deep-link results arrive through `appsflyer.DEEP_LINK_RESULT`.
 
 Please [open an issue](https://github.com/AGulev/defold-extension-appsflyer/issues) with the Defold version, platform, SDK version and sanitized reproduction details.

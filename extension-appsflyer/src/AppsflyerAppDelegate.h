@@ -1,5 +1,4 @@
 #import <UIKit/UIKit.h>
 
-@interface AppsflyerAppDelegate : NSObject <UIApplicationDelegate>
-
+@interface AppsflyerAppDelegate : NSObject <UIApplicationDelegate, UISceneDelegate>
 @end

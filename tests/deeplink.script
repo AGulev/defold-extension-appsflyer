@@ -1,0 +1,47 @@
+-- Open links containing deep_link_value and a unique deep_link_sub1 token.
+-- See tests/README.md. This checks real native SDK responses, not injected Lua data.
+local function callback(self, message_id, message)
+    if message_id == appsflyer.DEEP_LINK_RESULT then
+        assert(message.status == "FOUND" or message.status == "NOT_FOUND" or message.status == "ERROR")
+        if message.status == "FOUND" then
+            assert(type(message.deep_link) == "table")
+            assert(type(message.is_deferred) == "boolean")
+            local link = message.deep_link
+            assert(type(link.deep_link_value) == "string", "Missing deep_link_value")
+            assert(type(link.deep_link_sub1) == "string", "Missing test token")
+            assert(not self.seen[link.deep_link_sub1], "Duplicate deep-link callback")
+            self.seen[link.deep_link_sub1] = true
+            print("AF_DEEPLINK FOUND_PASS", link.deep_link_value, link.deep_link_sub1, message.is_deferred)
+            appsflyer.log_event("defold_deeplink", {
+                deep_link_value = link.deep_link_value,
+                deep_link_sub1 = link.deep_link_sub1,
+            })
+        elseif message.status == "ERROR" then
+            assert(type(message.error) == "string" and #message.error > 0)
+            print("AF_DEEPLINK ERROR", message.error)
+        else
+            assert(message.deep_link == nil and message.is_deferred == nil)
+            print("AF_DEEPLINK NOT_FOUND_PASS")
+        end
+    elseif message_id == appsflyer.START_SUCCESS then
+        print("AF_DEEPLINK START_SUCCESS")
+    elseif message_id == appsflyer.EVENT_SUCCESS then
+        print("AF_DEEPLINK EVENT_SUCCESS", message.event_name)
+    elseif message.error then
+        print("AF_DEEPLINK REQUEST_ERROR", message_id, message.error)
+    end
+end
+
+function init(self)
+    assert(appsflyer and appsflyer.DEEP_LINK_RESULT, "Deep-link API missing")
+    self.seen = {}
+    appsflyer.set_callback(callback)
+    appsflyer.set_customer_user_id("defold_deeplink_test")
+    appsflyer.set_sharing_filter_for_partners({ "all" })
+    appsflyer.start_sdk()
+    print("AF_DEEPLINK READY", appsflyer.get_sdk_version())
+end
+
+function final(self)
+    appsflyer.set_callback(nil)
+end

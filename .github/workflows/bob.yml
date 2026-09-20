@@ -5,3 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     uses: defold/github-actions-common/.github/workflows/bob.yml@master
+    with:
+      # PR #13256: use this development Bob until the scene API reaches alpha.
+      bob_jar_url: https://d.defold.com/archive/dev/97c0cda31740591125d4347d916f68a87030d367/bob/bob.jar
+      build_server: https://build-stage.defold.com

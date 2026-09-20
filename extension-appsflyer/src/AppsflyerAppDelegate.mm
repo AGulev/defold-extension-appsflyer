@@ -1,8 +1,6 @@
 #if defined(DM_PLATFORM_IOS)
 #import "AppsflyerAppDelegate.h"
-#import <AppsFlyerLib/AppsFlyerLib.h>
 #import "AppsFlyerAttribution.h"
-
 
 @implementation AppsflyerAppDelegate
 
@@ -15,25 +13,29 @@
     return YES;
 }
 
-// Reports app open from a Universal Link for iOS 9 or above
-- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> *restorableObjects))restorationHandler {
-    [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
-    return YES;
-  }
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
+    // Cold-start links arrive before the SDK/Lua bridge exists. The attribution
+    // bridge retains every pending URL/activity until SDK initialization.
+    [self scene:scene openURLContexts:connectionOptions.URLContexts];
+    for (NSUserActivity* activity in connectionOptions.userActivities)
+        [self scene:scene continueUserActivity:activity];
+}
 
-//   Reports app open from deep link from apps which do not support Universal Links (Twitter) and for iOS8 and below
-  - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation {
-      [[AppsFlyerAttribution shared] handleOpenUrl:url sourceApplication:sourceApplication annotation:annotation];
-    return YES;
-  }
+- (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts {
+    for (UIOpenURLContext* context in URLContexts) {
+        NSMutableDictionary* options = [NSMutableDictionary dictionary];
+        if (context.options.sourceApplication)
+            options[UIApplicationOpenURLOptionsSourceApplicationKey] = context.options.sourceApplication;
+        if (context.options.annotation)
+            options[UIApplicationOpenURLOptionsAnnotationKey] = context.options.annotation;
+        options[UIApplicationOpenURLOptionsOpenInPlaceKey] = @(context.options.openInPlace);
+        [[AppsFlyerAttribution shared] handleOpenUrl:context.URL options:options];
+    }
+}
 
-// Reports app open from deep link for iOS 10
-  - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
-  options:(NSDictionary *) options {
-    [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
-    return YES;
-  }
+- (void)scene:(UIScene *)scene continueUserActivity:(NSUserActivity *)userActivity {
+    [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:nil];
+}
 
 @end
-
-#endif // platform
+#endif

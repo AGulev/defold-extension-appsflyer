@@ -1,0 +1,6 @@
+[bootstrap]
+main_collection = /tests/deeplink.collectionc
+
+[appsflyer]
+is_debug = 1
+uri_scheme = defold-appsflyer-test

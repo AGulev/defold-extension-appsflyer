@@ -1,11 +1,11 @@
 ---
 title: Defold AppsFlyer extension API documentation
-brief: This manual covers AppsFlyer attribution, events, customer IDs and consent controls on Android and iOS in Defold.
+brief: This manual covers AppsFlyer attribution, events, customer IDs, deep links and consent controls on Android and iOS in Defold.
 ---
 
 # Defold AppsFlyer extension
 
-[AppsFlyer](https://www.appsflyer.com/) native extension for [Defold](https://defold.com/), supporting install attribution, customer IDs, and in-app events on Android and iOS.
+[AppsFlyer](https://www.appsflyer.com/) native extension for [Defold](https://defold.com/), supporting install attribution, deep links, customer IDs, and in-app events on Android and iOS.
 
 Uses **Android SDK 7.0.1** and **iOS SDK 7.0.2**. See the [editor API reference](../extension-appsflyer/api/appsflyer.script_api), [SDK 7 migration and Lua API audit](sdk7-upgrade.md) and [simulator testing instructions](../tests/README.md).
 
@@ -30,10 +30,11 @@ is_debug = 0
 - `apple_app_id`: required on iOS; the numeric App Store ID, without the `id` prefix. It is different from your bundle identifier.
 - `is_debug`: `1` enables SDK diagnostics; use `0` for release builds. Debug output can include the Dev Key and identifiers.
 - `android_channel` and `android_af_store`: optional Android `CHANNEL` and `AF_STORE` manifest metadata.
+- `uri_scheme`: optional custom URI scheme, without `://`, registered on Android and iOS. Leave empty if your own manifests already configure it.
 
-The Android package must match the app registered in AppsFlyer. Android requires minimum SDK 21. AppsFlyer itself requires iOS 12+, while the effective minimum also depends on Defold (the tested Defold 1.13.1 bundles target iOS 15+).
+The Android package must match the app registered in AppsFlyer. Android requires minimum SDK 21. AppsFlyer itself requires iOS 12+, while the effective minimum also depends on Defold (Defold 1.14.0 targets iOS 15+).
 
-Use a current Defold/Extender toolchain. This upgrade is tested with Defold 1.13.1; its Bob requires Java 25. Gradle and CocoaPods resolve the native dependencies. Google Play Install Referrer is included explicitly. The Android AAR supplies its own assets, backup rules and `AD_ID` permission; the iOS pod supplies its privacy manifest. See [AppsFlyer's installation guide](https://dev.appsflyer.com/hc/docs/install-android-sdk-7) when merging custom backup rules or configuring additional stores.
+Requires **Defold 1.14.0 or later** with the iOS scene-delegate API introduced in [Defold PR #13256](https://github.com/defold/defold/pull/13256). While that change is on a development branch, use Bob from that branch and `https://build-stage.defold.com`. Bob requires Java 25. Gradle and CocoaPods resolve the native dependencies. Google Play Install Referrer is included explicitly. The Android AAR supplies its own assets, backup rules and `AD_ID` permission; the iOS pod supplies its privacy manifest. See [AppsFlyer's installation guide](https://dev.appsflyer.com/hc/docs/install-android-sdk-7) when merging custom backup rules or configuring additional stores.
 
 ## Initialize and start
 
@@ -104,8 +105,46 @@ This purchase event only records revenue; it does not validate a receipt.
 | `START_FAIL` | `{ error = string, code = number }`. |
 | `EVENT_SUCCESS` | `{ event_name = string }`. |
 | `EVENT_FAIL` | `{ event_name = string, error = string, code = number }`. |
+| `DEEP_LINK_RESULT` | `{ status = "FOUND", deep_link = table, is_deferred = boolean }`, `{ status = "NOT_FOUND" }`, or `{ status = "ERROR", error = string }`. |
 
 New Lua functions in this upgrade are `get_sdk_version`, `set_consent_data`, `enable_tcf_data_collection`, `anonymize_user`, `stop_sdk`, `is_stopped`, `set_currency_code`, and `set_sharing_filter_for_partners`. The four start/event callback constants are also new. Error codes come from each native SDK and need not match across platforms. Conversion data is a separate asynchronous response, not an event-delivery acknowledgment. Events with the same name have no separate request identifier in this API.
+
+## Deep links
+
+The extension subscribes to AppsFlyer's Unified Deep Linking (UDL) API on both platforms. Register your Lua callback in `init()` to receive `DEEP_LINK_RESULT`. Results are queued until a callback is registered and delivered on the Lua thread. Deep-link resolution can finish before `start_sdk()` or session delivery; the session start gate still applies.
+
+```lua
+local function on_appsflyer(self, message_id, message)
+    if message_id == appsflyer.DEEP_LINK_RESULT then
+        if message.status == "FOUND" then
+            local link = message.deep_link
+            print("Destination:", link.deep_link_value)
+            print("Parameter:", link.deep_link_sub1)
+            print("Deferred:", message.is_deferred)
+            -- Validate the destination/parameters before routing your game.
+        elseif message.status == "ERROR" then
+            print("Deep link failed:", message.error)
+        end
+    end
+end
+```
+
+`deep_link` preserves the native SDK's click-event fields. Fields other than `deep_link_value` and `deep_link_sub1` through `deep_link_sub10` depend on attribution and privacy rules. `is_deferred` distinguishes post-install resolution from direct links. `NOT_FOUND` and `ERROR` do not contain a `deep_link` table. Error descriptions differ by platform.
+
+For a custom URI scheme, add this setting to your app's `game.project`:
+
+```ini
+[appsflyer]
+uri_scheme = mygame
+```
+
+This registers URLs such as `mygame://open?deep_link_value=level&deep_link_sub1=42`. Choose a scheme for your own app. If your manifests already register it, leave this setting empty.
+
+On iOS, a scene observer is registered before application launch. Cold-start connection URLs/user activities are buffered until SDK initialization; later scene URL and user-activity callbacks are forwarded directly. Keep Defold's default scene manifest and `DefoldSceneDelegate` when customizing `Info.plist`. The extension observes scenes without replacing Defold's window or scene delegate.
+
+Android SDK 7.0.1 currently resolves links on cold launch and when the app returns from the background. A new intent delivered while the app remains in the foreground may not produce a UDL callback.
+
+URI schemes alone do not configure Universal Links, Android App Links or deferred attribution. For those, configure your AppsFlyer OneLink template, iOS Associated Domains/signing and Android verified HTTPS intent filters for your own app/domain. Follow AppsFlyer's [iOS UDL](https://dev.appsflyer.com/hc/docs/dl_ios_unified_deep_linking) and [Android UDL](https://dev.appsflyer.com/hc/docs/dl_android_unified_deep_linking) guides. Custom OneLink domains, link generation and push deep-link configuration are not exposed by the Lua API.
 
 ## Consent and collection controls
 
@@ -155,7 +194,7 @@ Partner lists must be contiguous Lua arrays starting at index 1. Each entry must
 
 ## API coverage and tests
 
-The extension exposes 14 functions and six callback constants. Unified Deep Linking, typed/nested event values, dedicated ad revenue and receipt validation remain unbound. The [API audit](sdk7-upgrade.md#lua-api-coverage) lists the remaining gaps. See [simulator test instructions](../tests/README.md) for reproducible builds and integration checks.
+The extension exposes 14 functions and seven callback constants. UDL results are supported; typed/nested event values, dedicated ad revenue and receipt validation remain unbound. The [API audit](sdk7-upgrade.md#lua-api-coverage) lists the remaining gaps. See [simulator test instructions](../tests/README.md) for reproducible builds and integration checks.
 
 ## Issues and suggestions
 

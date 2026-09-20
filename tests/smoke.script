@@ -1,6 +1,7 @@
 -- See tests/README.md for building and injecting local test credentials.
 local function callback(self, message_id, message)
-    assert(self.start_requested, "SDK sent a callback before Lua requested start")
+    assert(self.start_requested or message_id == appsflyer.DEEP_LINK_RESULT,
+        "SDK sent a session/event callback before Lua requested start")
     local names = {
         [appsflyer.CONVERSION_DATA_SUCCESS] = "CONVERSION_DATA_SUCCESS",
         [appsflyer.CONVERSION_DATA_FAIL] = "CONVERSION_DATA_FAIL",
@@ -8,6 +9,7 @@ local function callback(self, message_id, message)
         [appsflyer.START_FAIL] = "START_FAIL",
         [appsflyer.EVENT_SUCCESS] = "EVENT_SUCCESS",
         [appsflyer.EVENT_FAIL] = "EVENT_FAIL",
+        [appsflyer.DEEP_LINK_RESULT] = "DEEP_LINK_RESULT",
     }
     print("AF_SMOKE", names[message_id], json.encode(message))
     if message_id == appsflyer.EVENT_FAIL and message.event_name == "defold_sdk_stopped" then
